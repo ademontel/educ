@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:14
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.development
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: on-failure
+    env_file:
+      - ./backend/.env.development
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/backend
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    # Cambiamos working_dir a /app (misma carpeta que tu Dockerfile usa)
+    working_dir: /app
+    command: npm run dev
+    volumes:
+      # Montamos tu carpeta local frontend en /app
+      - ./frontend:/app:cached
+      # Preservamos los node_modules que la imagen creó en /app/node_modules
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+
+volumes:
+  postgres_data:
