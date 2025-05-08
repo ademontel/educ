@@ -19,7 +19,6 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <div className="container">
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -57,7 +56,6 @@ function App() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </div>
   );
 }
 
