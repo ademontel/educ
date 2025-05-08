@@ -15,7 +15,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
   backend:
     build:
       context: ./backend
@@ -26,7 +25,9 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/workspace
+      - .:/workspace:cached
+      - /workspace/backend/node_modules
+      - backend-venv:/workspace/backend/.venv
     working_dir: /workspace/backend
     depends_on:
       db:
@@ -36,16 +37,16 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    # Cambiamos working_dir a /app (misma carpeta que tu Dockerfile usa)
-    working_dir: /app
+    working_dir: /workspace/frontend
     command: npm run dev
     volumes:
-      # Montamos tu carpeta local frontend en /app
-      - ./frontend:/app:cached
-      # Preservamos los node_modules que la imagen creó en /app/node_modules
-      - /app/node_modules
+      - .:/workspace:cached
+      - /workspace/frontend/node_modules
     ports:
       - "5173:5173"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
+  backend-venv:

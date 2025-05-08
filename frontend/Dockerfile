@@ -1,6 +1,6 @@
 FROM node:18
 
-WORKDIR /app
+WORKDIR /workspace/frontend
 
 COPY package*.json ./
 

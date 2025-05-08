@@ -1,10 +1,19 @@
 {
   "name": "EDC Fullstack DevContainer",
   "dockerComposeFile": ["../docker-compose.yml"],
-  "service": "frontend",
-  // Apunta al mismo directorio de trabajo que definimos en Compose
-  "workspaceFolder": "/app",
+  "service": "backend",
+  "workspaceFolder": "/workspace",
   "forwardPorts": [5173, 8000, 5432],
   "postCreateCommand": "pip install -r backend/requirements.txt && cd frontend && npm install",
-  "remoteUser": "root"
+  "remoteUser": "root",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
 }
