@@ -1,7 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import UserList from './components/UserList';
-import UserForm from './components/UserForm';
 import Login from './components/Login';
 import Register from './components/Register';
 import { useAuth } from './context/AuthContext.jsx';
@@ -35,22 +34,6 @@ function App() {
           element={
             <ProtectedRoute>
               <UserList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/users/new"
-          element={
-            <ProtectedRoute>
-              <UserForm />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/users/:id"
-          element={
-            <ProtectedRoute>
-              <UserForm />
             </ProtectedRoute>
           }
         />
