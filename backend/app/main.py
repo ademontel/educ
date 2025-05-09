@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from . import models, schemas, crud
 from .database import SessionLocal, engine
 from fastapi.middleware.cors import CORSMiddleware
+
 import logging
 
 # Configurar logging
@@ -15,6 +16,8 @@ logging.basicConfig(
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+from app.admin import setup_admin
+setup_admin(app)
 
 app.add_middleware(
     CORSMiddleware,
