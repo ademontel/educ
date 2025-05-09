@@ -20,7 +20,7 @@
    docker-compose up --build
    ```
 4. Accede a:
-   - Frontend: http://localhost:3000
+   - Frontend: http://localhost:5173
    - API: http://localhost:8000
    - Documentación FastAPI: http://localhost:8000/docs
 
