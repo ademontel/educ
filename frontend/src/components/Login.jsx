@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
-function Login() {
-  const [username, setUsername] = useState('');
+function Login() {  
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await login({ username, password });
+    const success = await login({ email, password });
     if (success) {
       navigate('/users');
     } else {
@@ -23,13 +23,12 @@ function Login() {
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
         <h2 className="text-2xl font-bold text-center text-cyan-900 mb-6">Iniciar Sesión</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">Usuario</label>
+          <div>            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
             <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-600"
             />

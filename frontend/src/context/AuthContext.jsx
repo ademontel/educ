@@ -15,9 +15,8 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Error al obtener usuarios');
       }
       const users = await response.json();
-      
-      const user = users.find(u => 
-        u.name === credentials.username && 
+        const user = users.find(u => 
+        u.email === credentials.email && 
         u.password === credentials.password
       );
 
