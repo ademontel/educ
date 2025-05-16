@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import UserList from './components/UserList';
 import Login from './components/Login';
+import StudentDashboard from './components/StudentDashboard';
 import Register from './components/Register';
 import { useAuth } from './context/AuthContext.jsx';
 
@@ -21,22 +22,9 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Navigate to="/users" replace />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/users"
-          element={
-            <ProtectedRoute>
-              <UserList />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/" element={<ProtectedRoute><Navigate to="/users" replace /></ProtectedRoute>}/>
+        <Route path="/users" element={<ProtectedRoute><UserList /></ProtectedRoute>}/>
+        <Route path="/dashboard" element={<StudentDashboard />}/>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
   );
