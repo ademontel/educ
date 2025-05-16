@@ -6,10 +6,14 @@ function UserList() {
   const navigate = useNavigate();
   const { users, fetchUsers, deleteUser } = useUserContext();
 
-  useEffect(() => {
-    const fetchData = async () => {
+  useEffect(() => {    const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/users/');
+        const response = await fetch('http://localhost:8000/users/', {
+          credentials: 'include',  // Esto enviará las cookies automáticamente
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
         if (response.ok) {
           const data = await response.json();
           fetchUsers(data);
@@ -22,12 +26,15 @@ function UserList() {
     };
 
     fetchData();
-  }, [fetchUsers, navigate]);
-
+  }, [navigate]);
   const handleDelete = async (id) => {
     try {
       const response = await fetch(`http://localhost:8000/users/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include',  // Esto enviará las cookies automáticamente
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       if (response.ok) {

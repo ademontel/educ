@@ -1,9 +1,17 @@
 from pydantic import BaseModel, EmailStr, Field, constr
 from typing import Optional
 
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
 class UserBase(BaseModel):
     name: str
     email: EmailStr
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
 
 class UserCreate(UserBase):
     # Password requerido solo para crear nuevos usuarios
