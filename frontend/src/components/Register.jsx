@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useUserContext } from '../context/UserContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
-
 function Register() {
   const [formData, setFormData] = useState({
     name: '',
@@ -11,53 +10,51 @@ function Register() {
     password: '',
     confirmPassword: ''
   });
-  const { addUser } = useUserContext();
+  const [errorMessage, setErrorMessage] = useState('');  const { registerUser } = useUserContext();
   const { login } = useAuth();
   const navigate = useNavigate();
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage('');
     
+    // Validación de contraseña
+    if (formData.password.length < 6) {
+      setErrorMessage('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    
+    // Validación de coincidencia de contraseñas
     if (formData.password !== formData.confirmPassword) {
-      alert('Las contraseñas no coinciden');
+      setErrorMessage('Las contraseñas no coinciden');
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:8000/users/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password
-        }),
+      const { error, user } = await registerUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
       });
 
-      if (response.ok) {
-        const newUser = await response.json();
-        addUser(newUser);
-        
-        // Intentamos hacer login automáticamente después del registro
-        const loginSuccess = await login({ 
-          username: formData.email, 
-          password: formData.password 
-        });
-        
-        if (loginSuccess) {
-          navigate('/users');
-        } else {
-          navigate('/login');
-        }
+      if (error) {
+        setErrorMessage(error);
+        return;
+      }
+
+      // Intentamos hacer login automáticamente después del registro
+      const loginSuccess = await login({ 
+        username: formData.email, 
+        password: formData.password 
+      });
+      
+      if (loginSuccess) {
+        navigate('/users');
       } else {
-        const error = await response.json();
-        alert(error.detail || 'Error al registrar usuario');
+        navigate('/login');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al registrar usuario');
+      setErrorMessage('Error al registrar usuario');
     }
   };
 
@@ -67,10 +64,15 @@ function Register() {
       [e.target.name]: e.target.value
     });
   };
-  return (
+  return (    
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-900 via-cyan-700 to-cyan-500 p-4">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
         <h2 className="text-2xl font-bold text-center text-cyan-900 mb-6">Registro</h2>
+        {errorMessage && (
+          <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-300 text-red-700 text-sm">
+            {errorMessage}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nombre</label>
