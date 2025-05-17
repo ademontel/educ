@@ -76,40 +76,49 @@ from fastapi.responses import JSONResponse
 
 @app.post("/login")
 async def login(user_credentials: schemas.UserLogin, db: Session = Depends(get_db)):
-    # Verificar credenciales
-    if not crud.verify_password(db, user_credentials.email, user_credentials.password):
-        raise HTTPException(
-            status_code=401,
-            detail="Credenciales incorrectas"
+    try:
+        # Verificar credenciales
+        if not crud.verify_password(db, user_credentials.email, user_credentials.password):
+            raise HTTPException(
+                status_code=401,
+                detail="Credenciales incorrectas"
+            )
+        
+        # Si las credenciales son correctas, obtener el usuario
+        user = crud.get_user_by_email(db, user_credentials.email)
+        
+        # Crear token de acceso
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": user.email}, expires_delta=access_token_expires
         )
-    
-    # Si las credenciales son correctas, obtener el usuario
-    user = crud.get_user_by_email(db, user_credentials.email)
-    
-    # Crear token de acceso
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    
-    # Crear respuesta con cookie
-    response = JSONResponse(content={"user": {
-        "id": user.id,
-        "name": user.name,
-        "email": user.email
-    }})
-    
-    # Configurar cookie segura
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        secure=True,  # Cambiar a False en desarrollo local sin HTTPS
-        samesite="lax",
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60  # Convertir minutos a segundos
-    )
-    
-    return response
+        
+        # Crear respuesta con cookie
+        response = JSONResponse(content={"user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email
+        }})
+        
+        # Configurar cookie
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            secure=False,  # Development setting
+            samesite="lax",
+            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        )
+        
+        return response
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logging.error(f"Error en login: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Error interno del servidor"
+        )
 
 @app.post("/logout")
 async def logout():

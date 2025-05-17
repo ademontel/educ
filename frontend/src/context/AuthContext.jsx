@@ -33,8 +33,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (credentials) => {
-    try {
-      const response = await fetch(`${API_URL}/login`, {
+    try {      const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,8 +43,9 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Error al iniciar sesión');
+        const errorData = await response.json();
+        console.error('Login error:', errorData);
+        throw new Error(errorData.detail || 'Error al iniciar sesión');
       }
 
       const data = await response.json();
