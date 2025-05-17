@@ -5,5 +5,8 @@ psycopg2-binary
 alembic
 pydantic[email]
 python-dotenv
-sqladmin[full]
+sqladmin
+werkzeug
+python-jose[cryptography]
+python-multipart
 

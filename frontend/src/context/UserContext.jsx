@@ -43,12 +43,57 @@ export const UserProvider = ({ children }) => {
   const deleteUser = (userId) => {
     dispatch({ type: 'DELETE_USER', payload: userId });
   };
+  // Verificar si existe el email
+  const checkEmailExists = async (email) => {
+    try {
+      const response = await fetch(`http://localhost:8000/users/check-email/${email}`);
+      const data = await response.json();
+      return data.exists;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      throw error;
+    }
+  };
+
+  // Registrar nuevo usuario
+  const registerUser = async (userData) => {
+    try {
+      // Verificar si el email ya existe
+      const emailExists = await checkEmailExists(userData.email);
+      if (emailExists) {
+        return { error: 'Este correo electrónico ya está registrado' };
+      }
+
+      // Si el email no existe, proceder con el registro
+      const response = await fetch('http://localhost:8000/users/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (response.ok) {
+        const newUser = await response.json();
+        dispatch({ type: 'ADD_USER', payload: newUser });
+        return { user: newUser };
+      } else {
+        const error = await response.json();
+        return { error: error.detail || 'Error al registrar usuario' };
+      }
+    } catch (error) {
+      console.error('Error registering user:', error);
+      return { error: 'Error al registrar usuario' };
+    }
+  };
 
   return (
     <UserContext.Provider value={{ 
       users: state.users, 
       fetchUsers, 
-      addUser, 
+      addUser,
+      checkEmailExists,
+      registerUser,
       updateUser, 
       deleteUser 
     }}>
