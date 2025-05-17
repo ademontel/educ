@@ -22,7 +22,7 @@ export default function CardProfessor(props) {
 
       {/* Cuerpo con detalles */}
       <div className="pt-3 flex-grow">
-        <span className="block text-lg sm:text-xl text-white">Nivel: {props.nivel}</span>
+        <span className="block text-lg sm:text-xl text-white">Nivel académico: {props.nivel}</span>
         <p className="block pt-2 text-lg sm:text-xl text-white overflow-hidden">Materias: {props.materias}</p>
       </div>
 

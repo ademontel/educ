@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 function StudentDashboard() {
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center bg-black">
+    <div className="relative min-h-screen flex flex-col items-center justify-center bg-gray-900">
       {/* Header */}
       <header className="w-full top-0 left-0 mx-auto text-white py-4 px-4 sm:px-6 bg-gradient-to-r from-sky-900 via-sky-700 to-sky-500 border-b border-sky-900">
         <div className="flex justify-between items-center">
@@ -14,7 +14,7 @@ function StudentDashboard() {
         </div>
       </header>
 
-      <main className="flex-grow w-full flex items-center justify-center text-white bg-black p-4 py-15 sm:py-0">
+      <main className="flex-grow w-full flex items-center justify-center text-white g-gray-900 p-4 py-15 sm:py-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 w-full max-w-4xl">
           <div className="relative pb-12 flex flex-col sm:col-span-2 items-start min-h-[30px]">
             <span className="absolute top-3 left-0 font-bold text-2xl sm:text-4xl">

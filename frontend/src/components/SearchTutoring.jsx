@@ -105,7 +105,7 @@ function SearchTutoring() {
         ]
     
   return (
-    <div className="flex flex-col min-h-screen bg-black">
+    <div className="flex flex-col min-h-screen bg-gray-900">
       {/* Header */}
       <header className="w-full bg-gradient-to-r from-sky-900 via-sky-700 to-sky-500 border-b border-sky-900">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -118,7 +118,7 @@ function SearchTutoring() {
 
       {/* Main */}
       <main className="flex-grow container mx-auto px-6 py-8">
-        <h1 className="ps-26 text-white font-bold text-3xl sm:text-4xl mb-8">Buscar Tutoría</h1>
+        <h1 className=" ps-2 sm:ps-26 text-white font-bold  mb-8 text-3xl sm:text-4xl">Buscar Tutoría</h1>
 
         <div className="flex flex-wrap justify-center gap-6">
           {profesores.map((profesor) => (
