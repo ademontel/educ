@@ -30,11 +30,11 @@ function StudentDashboard() {
           </div>
 
           {/* Card 2 */}
-          <div className="relative bg-gradient-to-br from-orange-900 via-orange-700 to-orange-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:contrast-125 transition min-h-[180px]">
+          <Link to="/search" className="relative bg-gradient-to-br from-orange-900 via-orange-700 to-orange-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:contrast-125 transition min-h-[180px]">
             <span className="absolute top-3 left-3 font-bold text-xl sm:text-2xl z-10">
               Buscar Tutorías
             </span>
-          </div>
+          </Link>
 
           {/* Card 3 */}
           <div className="relative bg-gradient-to-br from-yellow-900 via-yellow-700 to-yellow-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:contrast-125 transition min-h-[180px]">
