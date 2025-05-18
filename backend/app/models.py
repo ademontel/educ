@@ -78,6 +78,7 @@ class Tutorship(Base):
 
     professor = relationship("Professor", back_populates="tutorships")
     student = relationship("User", back_populates="student_tutorships", foreign_keys=[student_id])
+    subject = relationship("Subject")
 
 class Payment(Base):
     __tablename__ = "payments"
