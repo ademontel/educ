@@ -36,11 +36,11 @@ def check_email(email: str, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email)
     return {"exists": db_user is not None}
 
-@app.get("/users", response_model=list[schemas.User])
+@app.get("/users", response_model=list[schemas.UserOut])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_users(db, skip=skip, limit=limit)
 
-@app.get("/users/{user_id}", response_model=schemas.User)
+@app.get("/users/{user_id}", response_model=schemas.UserOut)
 def read_user(user_id: int, db: Session = Depends(get_db)):
     db_user = crud.get_user(db, user_id)
     if not db_user:
@@ -48,14 +48,14 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     return db_user
     return {"exists": db_user is not None}
 
-@app.post("/users", response_model=schemas.User)
+@app.post("/users", response_model=schemas.UserOut)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud.create_user(db, user)
 
-@app.put("/users/{user_id}", response_model=schemas.User)
+@app.put("/users/{user_id}", response_model=schemas.UserOut)
 def update_user(user_id: int, user: schemas.UserCreate, db: Session = Depends(get_db)):
     updated = crud.update_user(db, user_id, user)
     if not updated:
