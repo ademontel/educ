@@ -1,8 +1,11 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import UserList from './components/UserList';
 import Login from './components/Login';
+import StudentDashboard from './components/StudentDashboard';
+import SearchTutoring from './components/SearchTutoring';
+import TeacherView from './components/TeacherView';
 import Register from './components/Register';
+import NotFound from './components/NotFound';
 import { useAuth } from './context/AuthContext.jsx';
 
 // Componente para proteger rutas
@@ -18,27 +21,20 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Navigate to="/users" replace />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/users"
-          element={
-            <ProtectedRoute>
-              <UserList />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+    <Routes>
+      {/* Rutas públicas */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      
+      {/* Rutas protegidas */}
+      <Route path="/" element={<ProtectedRoute><Navigate to="/dashboard" replace /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
+      <Route path="/search" element={<ProtectedRoute><SearchTutoring /></ProtectedRoute>} />
+      <Route path="/teacherview/:id" element={<ProtectedRoute><TeacherView /></ProtectedRoute>} />
+      
+      {/* Ruta 404 */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 
