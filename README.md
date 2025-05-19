@@ -42,16 +42,16 @@
 
 ## Si da rerores raros al clonar por primera vez
 
-# 🔄 1. Eliminar imágenes cacheadas o dañadas
+🔄 1. Eliminar imágenes cacheadas o dañadas
 docker builder prune --all --force
 
-# 📦 2. Borrar contenedores y volúmenes persistentes (base de datos, migraciones previas, etc.)
+📦 2. Borrar contenedores y volúmenes persistentes (base de datos, migraciones previas, etc.)
 docker-compose down -v
 
-# 🧱 3. Recompilar todo desde cero
+🧱 3. Recompilar todo desde cero
 docker-compose build --no-cache
 
-# 🚀 4. Levantar el entorno
+🚀 4. Levantar el entorno
 docker-compose up
 
 ## Producción
