@@ -5,10 +5,10 @@ from datetime import datetime
 import enum
 
 class UserRole(str, enum.Enum):
-    alumno = "alumno"
-    docente = "docente"
+    student = "student"
+    teacher = "teacher"
     admin = "admin"
-    moderador = "moderador"
+    mod = "mod"
 
 class UserBase(BaseModel):
     name: str

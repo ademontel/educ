@@ -5,10 +5,10 @@ from .database import Base
 import enum
 
 class UserRole(str, enum.Enum):
-    alumno = "alumno"
-    docente = "docente"
+    student = "student"
+    teacher = "teacher"
     admin = "admin"
-    moderador = "moderador"
+    mod = "mod"
 
 class User(Base):
     __tablename__ = "users"

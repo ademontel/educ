@@ -27,8 +27,8 @@ function App() {
       <Route path="/register" element={<Register />} />
       
       {/* Rutas protegidas */}
-      <Route path="/" element={<ProtectedRoute><Navigate to="/dashboard" replace /></ProtectedRoute>} />
-      <Route path="/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
+      <Route path="/" element={<ProtectedRoute><Navigate to="/login" replace /></ProtectedRoute>} />
+      <Route path="/student" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
       <Route path="/search" element={<ProtectedRoute><SearchTutoring /></ProtectedRoute>} />
       <Route path="/teacherview/:id" element={<ProtectedRoute><TeacherView /></ProtectedRoute>} />
       

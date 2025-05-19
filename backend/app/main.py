@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from .auth import get_current_user, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
+from .schemas import UserRole
 
 import logging
 
@@ -50,9 +51,27 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 
 @app.post("/users", response_model=schemas.UserOut)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    print(">>>>> role recibido:", user.role, type(user.role))  # DEBUG
+    if not user.role:
+        raise HTTPException(status_code=400, detail="El campo 'role' es obligatorio")
+
+    if user.role not in schemas.UserRole.__members__:
+        raise HTTPException(status_code=422, detail=f"Rol inválido: {user.role}")
+
+    # Forzar conversión si es string
+    if isinstance(user.role, str):
+        try:
+            user.role = UserRole(user.role)
+        except ValueError:
+            raise HTTPException(status_code=422, detail=f"Rol inválido: {user.role}")
+
+    if not isinstance(user.role, UserRole):
+        raise HTTPException(status_code=400, detail="El campo 'role' es obligatorio")
+
     db_user = crud.get_user_by_email(db, user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
+
     return crud.create_user(db, user)
 
 @app.put("/users/{user_id}", response_model=schemas.UserOut)
@@ -97,7 +116,8 @@ async def login(user_credentials: schemas.UserLogin, db: Session = Depends(get_d
         response = JSONResponse(content={"user": {
             "id": user.id,
             "name": user.name,
-            "email": user.email
+            "email": user.email,
+            "role": user.role
         }})
         
         # Configurar cookie
