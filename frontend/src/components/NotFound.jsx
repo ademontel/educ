@@ -11,7 +11,7 @@ export default function NotFound() {
           Lo sentimos, la página que buscas no existe.
         </p>
         <Link
-          to="/login"
+          to="/"
           className="mt-8 inline-block bg-sky-500 hover:bg-sky-600 text-white font-semibold py-3 px-6 rounded-2xl transition-colors"
         >
           Volver al inicio
