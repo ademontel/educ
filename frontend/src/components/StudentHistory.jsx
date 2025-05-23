@@ -11,7 +11,11 @@ function StudentHistory() {
     { id: 3, Teacher: "Pablo Pérez", date: "22/05/2025", level: "Secundario", subject: "Geografía", pendingTasks: true },
     { id: 4, Teacher: "Elsa Payito", date: "22/05/2025", level: "Secundario", subject: "Química", pendingTasks: false },
     { id: 5, Teacher: "Mario Cantinflas", date: "22/05/2025", level: "Secundario", subject: "Historia", pendingTasks: true },
-    { id: 6, Teacher: "Aquiles Baeza", date: "22/05/2025", level: "Secundario", subject: "Mecánica", pendingTasks: false }
+    { id: 6, Teacher: "Aquiles Baeza", date: "22/05/2025", level: "Secundario", subject: "Mecánica", pendingTasks: false },
+    { id: 7, Teacher: "Aquiles Baeza", date: "22/05/2025", level: "Secundario", subject: "Mecánica", pendingTasks: false },
+    { id: 8, Teacher: "Aquiles Baeza", date: "22/05/2025", level: "Secundario", subject: "Mecánica", pendingTasks: false },
+    { id: 9, Teacher: "Aquiles Baeza", date: "22/05/2025", level: "Secundario", subject: "Mecánica", pendingTasks: false },
+    { id: 10, Teacher: "Aquiles Baeza", date: "22/05/2025", level: "Secundario", subject: "Mecánica", pendingTasks: false },
   ];
 
   const handleTasksClick = (id) => {
@@ -28,39 +32,39 @@ function StudentHistory() {
             <li
               key={session.id}
               className="bg-sky-700 rounded-lg shadow-lg p-4 text-white
-                flex flex-col justify-between items-start space-y-4
+                flex grid grid-cols-2 items-center space-y-4
                 lg:grid lg:grid-cols-5 lg:items-center lg:space-y-0 lg:gap-4"
             >
                 
-              <div className="flex flex-col items-center direction-row">
+              <div className="flex flex-col items-center">
                 <span className="col-span-1"><strong>Nombre</strong></span>
                 <span className="col-span-1">{session.Teacher}</span>
               </div>
 
-              <div className="flex flex-col items-center direction-row">
+              <div className="flex flex-col items-center">
                 <span className="col-span-1"><strong>Fecha</strong></span>
                 <span className="col-span-1">{session.date}</span>
               </div>
 
-              <div className="flex flex-col items-center direction-row">
+              <div className="flex flex-col items-center ">
                 <span className="col-span-1"><strong>Nivel</strong></span>
                 <span className="col-span-1">{session.level}</span>
               </div>
 
-              <div className="flex flex-col items-center direction-row">
+              <div className="flex flex-col items-center">
                 <span className="col-span-1"><strong>Materia</strong></span>
                 <span className="col-span-1">{session.subject}</span>
               </div>
 
 
-            <div className="w-full flex justify-end items-center lg:justify-center lg:col-span-1">
+            <div className="w-full flex justify-end items-center col-span-2 lg:justify-center lg:col-span-1">
               <button
                 onClick={() => handleTasksClick(session.id)}
                 disabled={!session.pendingTasks}
-                className={`px-4 py-2 rounded-lg font-medium lg:w-full 
+                className={`px-4 py-2 mx-auto rounded-lg font-medium w-50  
                   ${session.pendingTasks ? 'bg-white text-sky-700 hover:bg-gray-100' : 'bg-gray-400 text-gray-700 cursor-not-allowed'}`}
               >
-                {session.pendingTasks ? 'Ver tareas' : 'Sin tareas'}
+                {session.pendingTasks ? 'Tareas pendientes' : 'Sin tareas pendientes'}
               </button>
               </div>
             </li>
