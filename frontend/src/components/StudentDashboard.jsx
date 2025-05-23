@@ -37,11 +37,11 @@ function StudentDashboard() {
           </Link>
 
           {/* Card 3 */}
-          <div className="relative bg-gradient-to-br from-yellow-900 via-yellow-700 to-yellow-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:contrast-125 transition min-h-[180px]">
+          <Link to="/studenthistory" className="relative bg-gradient-to-br from-yellow-900 via-yellow-700 to-yellow-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:contrast-125 transition min-h-[180px]">
             <span className="absolute top-3 left-3 font-bold text-xl sm:text-2xl z-10">
               Historial
             </span>
-          </div>
+          </Link>
 
           {/* Card 4 */}
           <div className="relative bg-gradient-to-br from-green-900 via-green-700 to-green-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:contrast-125 transition min-h-[180px]">

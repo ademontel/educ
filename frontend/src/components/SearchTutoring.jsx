@@ -5,7 +5,7 @@ import TeacherCard from "./TeacherCard";
 function SearchTutoring() {
   
   // Datos estáticos de profesores (simulación de backend)
-  const initialProfesores = [
+  const initialTeachers = [
     {
       id: 1,
       nombre: "Elías Milano",
@@ -192,16 +192,16 @@ function SearchTutoring() {
     },
   ];
 
-  const [profesores, setProfesores] = useState(initialProfesores);
+  const [teachers, setTeachers] = useState(initialTeachers);
   // Paginación
   const itemsPerPage = 12;
   const [currentPage, setCurrentPage] = useState(1);
 
   // Cálculo de paginación
-  const totalPages = Math.ceil(profesores.length / itemsPerPage);
+  const totalPages = Math.ceil(teachers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const profesoresToDisplay = profesores.slice(startIndex, endIndex);
+  const teachersToDisplay = teachers.slice(startIndex, endIndex);
 
   const goToPage = (page) => {
     if (page < 1 || page > totalPages) return;
@@ -228,15 +228,15 @@ function SearchTutoring() {
         </h1>
 
         <div className="flex flex-wrap justify-center gap-6">
-          {profesoresToDisplay.map((profesor) => (
+          {teachersToDisplay.map((teacher) => (
             <TeacherCard
-              key={profesor.id}
-              id={profesor.id}
-              name={profesor.nombre}
-              username={profesor.usuario}
-              valoracion={profesor.valoracion}
-              nivel={profesor.nivel}
-              materias={profesor.materias.join(", ")}
+              key={teacher.id}
+              id={teacher.id}
+              name={teacher.nombre}
+              username={teacher.usuario}
+              valoracion={teacher.valoracion}
+              nivel={teacher.nivel}
+              materias={teacher.materias.join(", ")}
             />
           ))}
         </div>
