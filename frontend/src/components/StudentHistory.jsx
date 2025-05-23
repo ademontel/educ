@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function StudentHistory() {
   const navigate = useNavigate();
 
-  // Historial estático de tutorías
-  const studentHistory = [
+  const initialStudentHistory = [
     { id: 1, Teacher: "Elías Milano", date: "22/05/2025", level: "Secundario", subject: "Matemática", pendingTasks: true },
     { id: 2, Teacher: "Pedro Pablo", date: "22/05/2025", level: "Secundario", subject: "Física", pendingTasks: false },
     { id: 3, Teacher: "Pablo Pérez", date: "22/05/2025", level: "Secundario", subject: "Geografía", pendingTasks: true },
@@ -19,8 +18,21 @@ function StudentHistory() {
   ];
 
   const handleTasksClick = (id) => {
-    // Navegar a la vista de actividades pendientes para la tutoría con id
     navigate(`/student/tasks/${id}`);
+  };
+
+  const [studentHistory, setStudentHistory] = useState(initialStudentHistory);
+
+  const itemsPerPage = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(studentHistory.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const studentHistoryToDisplay = studentHistory.slice(startIndex, endIndex);
+
+  const goToPage = (page) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
   };
 
   return (
@@ -28,48 +40,67 @@ function StudentHistory() {
       <div className="container mx-auto px-6">
         <h1 className="text-3xl font-bold text-white mb-6">Historial de Tutorías</h1>
         <ul className="space-y-4">
-          {studentHistory.map((session, idx) => (
+          {studentHistoryToDisplay.map((session) => (
             <li
               key={session.id}
-              className="bg-sky-700 rounded-lg shadow-lg p-4 text-white
-                flex grid grid-cols-2 items-center space-y-4
-                lg:grid lg:grid-cols-5 lg:items-center lg:space-y-0 lg:gap-4"
+              className="bg-sky-700 rounded-lg shadow-lg p-4 text-white grid grid-cols-2 items-center space-y-4 lg:grid-cols-5 lg:space-y-0 lg:gap-4"
             >
-                
               <div className="flex flex-col items-center">
-                <span className="col-span-1"><strong>Nombre</strong></span>
-                <span className="col-span-1">{session.Teacher}</span>
+                <strong>Nombre</strong>
+                <span>{session.Teacher}</span>
               </div>
-
               <div className="flex flex-col items-center">
-                <span className="col-span-1"><strong>Fecha</strong></span>
-                <span className="col-span-1">{session.date}</span>
+                <strong>Fecha</strong>
+                <span>{session.date}</span>
               </div>
-
-              <div className="flex flex-col items-center ">
-                <span className="col-span-1"><strong>Nivel</strong></span>
-                <span className="col-span-1">{session.level}</span>
-              </div>
-
               <div className="flex flex-col items-center">
-                <span className="col-span-1"><strong>Materia</strong></span>
-                <span className="col-span-1">{session.subject}</span>
+                <strong>Nivel</strong>
+                <span>{session.level}</span>
               </div>
-
-
-            <div className="w-full flex justify-end items-center col-span-2 lg:justify-center lg:col-span-1">
-              <button
-                onClick={() => handleTasksClick(session.id)}
-                disabled={!session.pendingTasks}
-                className={`px-4 py-2 mx-auto rounded-lg font-medium w-50  
-                  ${session.pendingTasks ? 'bg-white text-sky-700 hover:bg-gray-100' : 'bg-gray-400 text-gray-700 cursor-not-allowed'}`}
-              >
-                {session.pendingTasks ? 'Tareas pendientes' : 'Sin tareas pendientes'}
-              </button>
+              <div className="flex flex-col items-center">
+                <strong>Materia</strong>
+                <span>{session.subject}</span>
+              </div>
+              <div className="flex justify-center items-center col-span-2 lg:col-span-1">
+                <button
+                  onClick={() => handleTasksClick(session.id)}
+                  disabled={!session.pendingTasks}
+                  className={`px-4 py-2 rounded-lg font-medium w-50
+                    ${session.pendingTasks ? 'bg-white text-sky-700 hover:bg-gray-100' : 'bg-gray-400 text-gray-700 cursor-not-allowed'}`}
+                >
+                  {session.pendingTasks ? 'Tareas pendientes' : 'Sin tareas pendientes'}
+                </button>
               </div>
             </li>
           ))}
         </ul>
+
+        {/* Controles de paginación */}
+        <div className="flex justify-center space-x-2 mt-8">
+          <button
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-gray-700 text-white rounded disabled:opacity-50"
+          >
+            Anterior
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => goToPage(page)}
+              className={`px-4 py-2 rounded ${page === currentPage ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200'}`}
+            >
+              {page}
+            </button>
+          ))}
+          <button
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-gray-700 text-white rounded disabled:opacity-50"
+          >
+            Siguiente
+          </button>
+        </div>
       </div>
     </div>
   );
