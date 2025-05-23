@@ -5,20 +5,94 @@ function StudentHistory() {
   const navigate = useNavigate();
 
   const initialStudentHistory = [
-    { id: 1, Teacher: "Elías Milano", date: "22/05/2025", level: "Secundario", subject: "Matemática", pendingTasks: true },
-    { id: 2, Teacher: "Pedro Pablo", date: "22/05/2025", level: "Secundario", subject: "Física", pendingTasks: false },
-    { id: 3, Teacher: "Pablo Pérez", date: "22/05/2025", level: "Secundario", subject: "Geografía", pendingTasks: true },
-    { id: 4, Teacher: "Elsa Payito", date: "22/05/2025", level: "Secundario", subject: "Química", pendingTasks: false },
-    { id: 5, Teacher: "Mario Cantinflas", date: "22/05/2025", level: "Secundario", subject: "Historia", pendingTasks: true },
-    { id: 6, Teacher: "Aquiles Baeza", date: "22/05/2025", level: "Secundario", subject: "Mecánica", pendingTasks: false },
-    { id: 7, Teacher: "Aquiles Baeza", date: "22/05/2025", level: "Secundario", subject: "Mecánica", pendingTasks: false },
-    { id: 8, Teacher: "Aquiles Baeza", date: "22/05/2025", level: "Secundario", subject: "Mecánica", pendingTasks: false },
-    { id: 9, Teacher: "Aquiles Baeza", date: "22/05/2025", level: "Secundario", subject: "Mecánica", pendingTasks: false },
-    { id: 10, Teacher: "Aquiles Baeza", date: "22/05/2025", level: "Secundario", subject: "Mecánica", pendingTasks: false },
+    {
+      id: 1,
+      Teacher: "Elías Milano",
+      date: "22/05/2025",
+      level: "Secundario",
+      subject: "Matemática",
+      pendingTasks: true,
+    },
+    {
+      id: 2,
+      Teacher: "Pedro Pablo",
+      date: "22/05/2025",
+      level: "Secundario",
+      subject: "Física",
+      pendingTasks: false,
+    },
+    {
+      id: 3,
+      Teacher: "Pablo Pérez",
+      date: "22/05/2025",
+      level: "Secundario",
+      subject: "Geografía",
+      pendingTasks: true,
+    },
+    {
+      id: 4,
+      Teacher: "Elsa Payito",
+      date: "22/05/2025",
+      level: "Secundario",
+      subject: "Química",
+      pendingTasks: false,
+    },
+    {
+      id: 5,
+      Teacher: "Mario Cantinflas",
+      date: "22/05/2025",
+      level: "Secundario",
+      subject: "Historia",
+      pendingTasks: true,
+    },
+    {
+      id: 6,
+      Teacher: "Aquiles Baeza",
+      date: "22/05/2025",
+      level: "Secundario",
+      subject: "Mecánica",
+      pendingTasks: false,
+    },
+    {
+      id: 7,
+      Teacher: "Aquiles Baeza",
+      date: "22/05/2025",
+      level: "Secundario",
+      subject: "Mecánica",
+      pendingTasks: false,
+    },
+    {
+      id: 8,
+      Teacher: "Aquiles Baeza",
+      date: "22/05/2025",
+      level: "Secundario",
+      subject: "Mecánica",
+      pendingTasks: false,
+    },
+    {
+      id: 9,
+      Teacher: "Aquiles Baeza",
+      date: "22/05/2025",
+      level: "Secundario",
+      subject: "Mecánica",
+      pendingTasks: false,
+    },
+    {
+      id: 10,
+      Teacher: "Aquiles Baeza",
+      date: "22/05/2025",
+      level: "Secundario",
+      subject: "Mecánica",
+      pendingTasks: false,
+    },
   ];
 
   const handleTasksClick = (id) => {
     navigate(`/student/tasks/${id}`);
+  };
+
+  const handleViewMore = (id) => {
+    navigate(`/tutoring/${id}`);
   };
 
   const [studentHistory, setStudentHistory] = useState(initialStudentHistory);
@@ -38,15 +112,17 @@ function StudentHistory() {
   return (
     <div className="min-h-screen bg-gray-900 py-8">
       <div className="container mx-auto px-6">
-        <h1 className="text-3xl font-bold text-white mb-6">Historial de Tutorías</h1>
+        <h1 className="text-3xl font-bold text-white mb-6">
+          Historial de Tutorías
+        </h1>
         <ul className="space-y-4">
           {studentHistoryToDisplay.map((session) => (
             <li
               key={session.id}
-              className="bg-sky-700 rounded-lg shadow-lg p-4 text-white grid grid-cols-2 items-center space-y-4 lg:grid-cols-5 lg:space-y-0 lg:gap-4"
+              className="bg-sky-700 rounded-lg shadow-lg p-4 text-white grid grid-cols-2 items-center space-y-4 lg:grid-cols-6 lg:space-y-0 lg:gap-4"
             >
               <div className="flex flex-col items-center">
-                <strong>Nombre</strong>
+                <strong>Tutor</strong>
                 <span>{session.Teacher}</span>
               </div>
               <div className="flex flex-col items-center">
@@ -61,14 +137,48 @@ function StudentHistory() {
                 <strong>Materia</strong>
                 <span>{session.subject}</span>
               </div>
-              <div className="flex justify-center items-center col-span-2 lg:col-span-1">
+
+              {/* MÓVIL: un sólo flex de 2 col-span con gap-x-2 y botones flex-1 */}
+              <div className="col-span-2 flex justify-center items-center space-x-2 lg:hidden">
                 <button
                   onClick={() => handleTasksClick(session.id)}
-                  disabled={!session.pendingTasks}
-                  className={`px-4 py-2 rounded-lg font-medium w-50
-                    ${session.pendingTasks ? 'bg-white text-sky-700 hover:bg-gray-100' : 'bg-gray-400 text-gray-700 cursor-not-allowed'}`}
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium ${
+                    session.pendingTasks
+                      ? "bg-orange-300 text-sky-700"
+                      : "border"
+                  }`}
                 >
-                  {session.pendingTasks ? 'Tareas pendientes' : 'Sin tareas pendientes'}
+                  {session.pendingTasks
+                    ? "Tareas pendientes"
+                    : "Sin tareas pendientes"}
+                </button>
+                <button
+                  onClick={() => handleViewMore(session.id)}
+                  className="flex-1 px-4 py-2 bg-white text-sky-700 rounded-lg font-medium"
+                >
+                  Ver actividades
+                </button>
+              </div>
+
+              {/* LG+: mantenemos las dos celdas separadas tal cual estaban */}
+              <div className="hidden lg:flex justify-center items-center">
+                <button
+                  onClick={() => handleTasksClick(session.id)}
+                  className={`px-4 py-2 rounded-lg font-medium lg:w-50 ${
+                    session.pendingTasks ? "bg-orange-300 text-sky-700" : "border"
+                  }`}
+                >
+                  {session.pendingTasks
+                    ? "Tareas pendientes"
+                    : "Sin tareas pendientes"}
+                </button>
+              </div>
+              <div className="hidden lg:flex justify-center items-center">
+                <button
+                  onClick={() => handleViewMore(session.id)}
+                  className="px-4 py-2 bg-white text-sky-700 rounded-lg font-medium lg:w-50 cursor-pointer"
+                >
+                  Ver más
                 </button>
               </div>
             </li>
@@ -88,7 +198,11 @@ function StudentHistory() {
             <button
               key={page}
               onClick={() => goToPage(page)}
-              className={`px-4 py-2 rounded ${page === currentPage ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200'}`}
+              className={`px-4 py-2 rounded ${
+                page === currentPage
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-800 text-gray-200"
+              }`}
             >
               {page}
             </button>
