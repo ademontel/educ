@@ -112,6 +112,15 @@ function StudentHistory() {
   return (
     <div className="min-h-screen bg-gray-900 py-8">
       <div className="container mx-auto px-6">
+        {/* Botón Volver */}
+        <button
+          onClick={() => window.history.back()}
+          className="mb-6 inline-flex items-center text-sky-400 hover:text-sky-300 transition-colors"
+        >
+          <i className="fas fa-chevron-left mr-2"></i>
+          <span>Volver</span>
+        </button>
+        
         <h1 className="text-3xl font-bold text-white mb-6">
           Historial de Tutorías
         </h1>
@@ -165,7 +174,9 @@ function StudentHistory() {
                 <button
                   onClick={() => handleTasksClick(session.id)}
                   className={`px-4 py-2 rounded-lg font-medium lg:w-50 ${
-                    session.pendingTasks ? "bg-orange-300 text-sky-700" : "border"
+                    session.pendingTasks
+                      ? "bg-orange-300 text-sky-700"
+                      : "border"
                   }`}
                 >
                   {session.pendingTasks

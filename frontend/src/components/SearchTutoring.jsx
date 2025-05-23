@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import TeacherCard from "./TeacherCard";
 
 function SearchTutoring() {
-  
   // Datos estáticos de profesores (simulación de backend)
   const initialTeachers = [
     {
@@ -207,7 +206,6 @@ function SearchTutoring() {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
   };
-  
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
@@ -223,6 +221,15 @@ function SearchTutoring() {
 
       {/* Main */}
       <main className="flex-grow container mx-auto px-6 py-8">
+        {/* Botón Volver */}
+        <button
+          onClick={() => window.history.back()}
+          className="mb-6 inline-flex items-center text-sky-400 hover:text-sky-300 transition-colors lg:ms-25 "
+        >
+          <i className="fas fa-chevron-left mr-2"></i>
+          <span>Volver</span>
+        </button>
+
         <h1 className=" ps-2 sm:ps-26 text-white font-bold  mb-8 text-3xl sm:text-4xl">
           Buscar Tutoría
         </h1>
@@ -255,7 +262,11 @@ function SearchTutoring() {
             <button
               key={page}
               onClick={() => goToPage(page)}
-              className={`px-4 py-2 rounded ${page === currentPage ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200'}`}
+              className={`px-4 py-2 rounded ${
+                page === currentPage
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-800 text-gray-200"
+              }`}
             >
               {page}
             </button>
@@ -269,7 +280,6 @@ function SearchTutoring() {
             Siguiente
           </button>
         </div>
-
       </main>
 
       {/* Footer */}
