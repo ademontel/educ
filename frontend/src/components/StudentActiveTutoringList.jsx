@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function StudentHistory() {
+function StudentActiveTutoringList() {
   const navigate = useNavigate();
 
-  const initialStudentHistory = [
+  const initialStudentTutoringList = [
     {
       id: 1,
       Teacher: "Elías Milano",
@@ -95,14 +95,19 @@ function StudentHistory() {
     navigate(`/tutoring/${id}`);
   };
 
-  const [studentHistory, setStudentHistory] = useState(initialStudentHistory);
+  const [studentTutoringList, setStudentTutoringList] = useState(
+    initialStudentTutoringList
+  );
 
   const itemsPerPage = 5;
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(studentHistory.length / itemsPerPage);
+  const totalPages = Math.ceil(studentTutoringList.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const studentHistoryToDisplay = studentHistory.slice(startIndex, endIndex);
+  const studentTutoringListToDisplay = studentTutoringList.slice(
+    startIndex,
+    endIndex
+  );
 
   const goToPage = (page) => {
     if (page < 1 || page > totalPages) return;
@@ -120,15 +125,15 @@ function StudentHistory() {
           <i className="fas fa-chevron-left mr-2"></i>
           <span>Volver</span>
         </button>
-        
+
         <h1 className="text-3xl font-bold text-white mb-6">
-          Historial de Tutorías
+          Tutorías Activas
         </h1>
         <ul className="space-y-4">
-          {studentHistoryToDisplay.map((session) => (
+          {studentTutoringListToDisplay.map((session) => (
             <li
               key={session.id}
-              className="bg-yellow-900 rounded-lg shadow-lg p-4 text-white grid grid-cols-2 items-center space-y-4 lg:grid-cols-6 lg:space-y-0 lg:gap-4"
+              className="bg-sky-700 rounded-lg shadow-lg p-4 text-white grid grid-cols-2 items-center space-y-4 lg:grid-cols-6 lg:space-y-0 lg:gap-4"
             >
               <div className="flex flex-col items-center">
                 <strong>Tutor</strong>
@@ -229,4 +234,4 @@ function StudentHistory() {
   );
 }
 
-export default StudentHistory;
+export default StudentActiveTutoringList;
