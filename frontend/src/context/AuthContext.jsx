@@ -10,25 +10,36 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch(`${API_URL}/check-auth`, {
-          credentials: 'include',
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setIsAuthenticated(true);
-          setUser(data.user); 
-        }
-      } catch (error) {
-        console.error('Error checking auth:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const checkAuth = async () => {
+    try {
+      const response = await fetch(`${API_URL}/check-auth`, {
+        credentials: 'include',
+      });
 
-    checkAuth();
-  }, []);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.user) {
+          setIsAuthenticated(true);
+          setUser(data.user);
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+      setIsAuthenticated(false);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  checkAuth();
+}, []);
 
   const login = async (credentials) => {
     try {
