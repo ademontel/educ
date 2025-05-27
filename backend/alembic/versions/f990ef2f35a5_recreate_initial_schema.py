@@ -1,8 +1,8 @@
-"""Make password nullable
+"""recreate_initial_schema
 
-Revision ID: 4898967cf24f
-Revises: 63d5f97673b9
-Create Date: 2025-05-04 21:36:58.545789
+Revision ID: f990ef2f35a5
+Revises: 
+Create Date: 2025-05-18 12:46:57.327871
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '4898967cf24f'
-down_revision: Union[str, None] = '63d5f97673b9'
+revision: str = 'f990ef2f35a5'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

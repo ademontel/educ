@@ -6,40 +6,48 @@ const API_URL = 'http://localhost:8000';
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState(null);
+  const [user, setUser] = useState(null); // 🔄 guardar el user completo
   const [isLoading, setIsLoading] = useState(true);
 
-  // Verificar estado de autenticación al cargar
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch(`${API_URL}/check-auth`, {
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setIsAuthenticated(true);
-          setUserRole('user');
-        }
-      } catch (error) {
-        console.error('Error checking auth:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const checkAuth = async () => {
+    try {
+      const response = await fetch(`${API_URL}/check-auth`, {
+        credentials: 'include',
+      });
 
-    checkAuth();
-  }, []);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.user) {
+          setIsAuthenticated(true);
+          setUser(data.user);
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+      setIsAuthenticated(false);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  checkAuth();
+}, []);
 
   const login = async (credentials) => {
-    try {      const response = await fetch(`${API_URL}/login`, {
+    try {
+      const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',  // Importante para enviar/recibir cookies
-        body: JSON.stringify(credentials)
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(credentials),
       });
 
       if (!response.ok) {
@@ -49,20 +57,20 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      
+
       if (data.user) {
         setIsAuthenticated(true);
-        setUserRole('user');
+        setUser(data.user); // ✅ guardar el usuario con role incluido
         return true;
       } else {
         setIsAuthenticated(false);
-        setUserRole(null);
+        setUser(null);
         return false;
       }
     } catch (error) {
       console.error('Error durante el login:', error);
       setIsAuthenticated(false);
-      setUserRole(null);
+      setUser(null);
       return false;
     }
   };
@@ -71,7 +79,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await fetch(`${API_URL}/logout`, {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -81,14 +89,15 @@ export const AuthProvider = ({ children }) => {
       console.error('Error durante el logout:', error);
     } finally {
       setIsAuthenticated(false);
-      setUserRole(null);
+      setUser(null);
     }
   };
 
   return (
     <AuthContext.Provider value={{ 
       isAuthenticated, 
-      userRole, 
+      isLoading, 
+      user, 
       login, 
       logout 
     }}>

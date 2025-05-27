@@ -11,7 +11,7 @@ const userReducer = (state, action) => {
     case 'UPDATE_USER':
       return {
         ...state,
-        users: state.users.map(user => 
+        users: state.users.map(user =>
           user.id === action.payload.id ? action.payload : user
         )
       };
@@ -43,7 +43,7 @@ export const UserProvider = ({ children }) => {
   const deleteUser = (userId) => {
     dispatch({ type: 'DELETE_USER', payload: userId });
   };
-  // Verificar si existe el email
+
   const checkEmailExists = async (email) => {
     try {
       const response = await fetch(`http://localhost:8000/users/check-email/${email}`);
@@ -55,16 +55,19 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // Registrar nuevo usuario
   const registerUser = async (userData) => {
+    console.log("UserData que se envía:", userData); // debug
+
+    if (!userData.role) {
+      return { error: "El campo 'role' es obligatorio" };
+    }
+
     try {
-      // Verificar si el email ya existe
       const emailExists = await checkEmailExists(userData.email);
       if (emailExists) {
         return { error: 'Este correo electrónico ya está registrado' };
       }
 
-      // Si el email no existe, proceder con el registro
       const response = await fetch('http://localhost:8000/users/', {
         method: 'POST',
         headers: {
@@ -88,14 +91,14 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ 
-      users: state.users, 
-      fetchUsers, 
+    <UserContext.Provider value={{
+      users: state.users,
+      fetchUsers,
       addUser,
       checkEmailExists,
       registerUser,
-      updateUser, 
-      deleteUser 
+      updateUser,
+      deleteUser
     }}>
       {children}
     </UserContext.Provider>

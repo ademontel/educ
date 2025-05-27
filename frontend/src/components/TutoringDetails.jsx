@@ -27,7 +27,7 @@ const TutoringDetails = () => {
   const [description, setDescription] = useState("");
 
   return (
-    <div className="container bg-gray-900 mx-auto p-6 space-y-6 lg:py-15 lg:px-40">
+    <div className="container text-black bg-gray-900 mx-auto p-6 space-y-6 lg:py-15 lg:px-40">
       {/* Botón Volver */}
       <button
         onClick={() => window.history.back()}
@@ -63,7 +63,7 @@ const TutoringDetails = () => {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Escribe aquí lo que has aprendido en la tutoría..."
-          className="w-full h-32 rounded-lg border border-blue-300 p-2 focus:outline-none focus:ring-2 focus:ring-pink-200 resize-none"
+          className="w-full text-gray h-32 rounded-lg border border-blue-300 p-2 focus:outline-none focus:ring-2 focus:ring-pink-200 resize-none"
         />
       </div>
 

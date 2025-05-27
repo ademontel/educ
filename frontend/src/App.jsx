@@ -1,26 +1,16 @@
-import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Login from './components/Login';
-import StudentDashboard from './components/StudentDashboard';
-import SearchTutoring from './components/SearchTutoring';
-import TeacherView from './components/TeacherView';
-import StudentHistory from './components/StudentHistory';
-import StudentActiveTutoringList from './components/StudentActiveTutoringList';
-import TutoringDetails from './components/TutoringDetails';
-import Register from './components/Register';
-import NotFound from './components/NotFound';
-import { useAuth } from './context/AuthContext.jsx';
-
-// Componente para proteger rutas
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  const location = useLocation();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-  return children;
-};
+import React from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import Login from "./components/Login";
+import StudentDashboard from "./components/StudentDashboard";
+import SearchTutoring from "./components/SearchTutoring";
+import TeacherView from "./components/TeacherView";
+import StudentHistory from "./components/StudentHistory";
+import StudentActiveTutoringList from "./components/StudentActiveTutoringList";
+import TutoringDetails from "./components/TutoringDetails";
+import Register from "./components/Register";
+import NotFound from "./components/NotFound";
+import PrivateLayout from "./components/PrivateLayout.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 function App() {
   return (
@@ -28,16 +18,95 @@ function App() {
       {/* Rutas públicas */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      
-      {/* Rutas protegidas */}
-      <Route path="/" element={<ProtectedRoute><Navigate to="/dashboard" replace /></ProtectedRoute>} />
-      <Route path="/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
-      <Route path="/search" element={<ProtectedRoute><SearchTutoring /></ProtectedRoute>} />
-      <Route path="/teacherview/:id" element={<ProtectedRoute><TeacherView /></ProtectedRoute>} />
-      <Route path="/studenthistory" element={<ProtectedRoute><StudentHistory /></ProtectedRoute>} />
-      <Route path="/studentactivetutoringlist" element={<ProtectedRoute><StudentActiveTutoringList /></ProtectedRoute>} />
-      <Route path="/tutoringdetails" element={<ProtectedRoute><TutoringDetails /></ProtectedRoute>} />
-      
+
+      {/* Redirección raíz */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Navigate to="/dashboard" replace />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Rutas protegidas con Navbar */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <PrivateLayout>
+              <StudentDashboard />
+            </PrivateLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/student/*"
+        element={
+          <ProtectedRoute>
+            <PrivateLayout>
+              <StudentDashboard />
+            </PrivateLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/search"
+        element={
+          <ProtectedRoute>
+            <PrivateLayout>
+              <SearchTutoring />
+            </PrivateLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/teacherview/:id"
+        element={
+          <ProtectedRoute>
+            <PrivateLayout>
+              <TeacherView />
+            </PrivateLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/studenthistory"
+        element={
+          <ProtectedRoute>
+            <PrivateLayout>
+              <StudentHistory />
+            </PrivateLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/studentactivetutoringlist"
+        element={
+          <ProtectedRoute>
+            <PrivateLayout>
+              <StudentActiveTutoringList />
+            </PrivateLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/tutoringdetails"
+        element={
+          <ProtectedRoute>
+            <PrivateLayout>
+              <TutoringDetails />
+            </PrivateLayout>
+          </ProtectedRoute>
+        }
+      />
+
       {/* Ruta 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
