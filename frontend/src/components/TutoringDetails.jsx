@@ -9,6 +9,7 @@ const TutoringDetails = () => {
     date: "22/05/2025",
     level: "Secundario",
     subject: "Matemática",
+    rating: "4",
   };
 
   const resources = [
@@ -48,6 +49,7 @@ const TutoringDetails = () => {
         </div>
         <div className="flex flex-col space-y-1 text-left lg:text-right">
           <span className="font-semibold">Fecha: {tutoringData.date}</span>
+          <span className="font-semibold">Valoración: {'★'.repeat(Math.round(tutoringData.rating))}</span>
         </div>
       </div>
 
@@ -68,7 +70,7 @@ const TutoringDetails = () => {
       {/* Recursos y Actividades */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Recursos */}
-        <div className="border-2 border-pink-300 rounded-2xl bg-pink-200 p-4">
+        <div className="border-2 border-pink-300 rounded-2xl bg-pink-300 p-4">
           <h2 className="font-semibold mb-3">Recursos:</h2>
           <ul className="space-y-2">
             {resources.map((res) => (
