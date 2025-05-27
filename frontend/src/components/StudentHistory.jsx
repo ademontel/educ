@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function StudentHistory() {
   const navigate = useNavigate();
@@ -161,10 +161,9 @@ function StudentHistory() {
                     : "Sin tareas pendientes"}
                 </button>
                 <button
-                  onClick={() => handleViewMore(session.id)}
                   className="flex-1 px-4 py-2 bg-white text-sky-700 rounded-lg font-medium"
                 >
-                  Ver actividades
+                  <Link to="/tutoringdetails">Ver actividades</Link>
                 </button>
               </div>
 
@@ -184,10 +183,9 @@ function StudentHistory() {
               </div>
               <div className="hidden lg:flex justify-center items-center">
                 <button
-                  onClick={() => handleViewMore(session.id)}
                   className="px-4 py-2 bg-white text-sky-700 rounded-lg font-medium lg:w-50 cursor-pointer"
                 >
-                  Ver más
+                  <Link to="/tutoringdetails">Ver actividades</Link>
                 </button>
               </div>
             </li>

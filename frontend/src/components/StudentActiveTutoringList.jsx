@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function StudentActiveTutoringList() {
   const navigate = useNavigate();
@@ -126,9 +126,7 @@ function StudentActiveTutoringList() {
           <span>Volver</span>
         </button>
 
-        <h1 className="text-3xl font-bold text-white mb-6">
-          Tutorías Activas
-        </h1>
+        <h1 className="text-3xl font-bold text-white mb-6">Tutorías Activas</h1>
         <ul className="space-y-4">
           {studentTutoringListToDisplay.map((session) => (
             <li
@@ -166,10 +164,9 @@ function StudentActiveTutoringList() {
                     : "Sin tareas pendientes"}
                 </button>
                 <button
-                  onClick={() => handleViewMore(session.id)}
                   className="flex-1 px-4 py-2 bg-white text-sky-700 rounded-lg font-medium"
                 >
-                  Ver actividades
+                  <Link to="/tutoringdetails">Ver actividades</Link>
                 </button>
               </div>
 
@@ -189,10 +186,9 @@ function StudentActiveTutoringList() {
               </div>
               <div className="hidden lg:flex justify-center items-center">
                 <button
-                  onClick={() => handleViewMore(session.id)}
                   className="px-4 py-2 bg-white text-sky-700 rounded-lg font-medium lg:w-50 cursor-pointer"
                 >
-                  Ver más
+                  <Link to="/tutoringdetails">Ver actividades</Link>
                 </button>
               </div>
             </li>

@@ -6,6 +6,7 @@ import SearchTutoring from './components/SearchTutoring';
 import TeacherView from './components/TeacherView';
 import StudentHistory from './components/StudentHistory';
 import StudentActiveTutoringList from './components/StudentActiveTutoringList';
+import TutoringDetails from './components/TutoringDetails';
 import Register from './components/Register';
 import NotFound from './components/NotFound';
 import { useAuth } from './context/AuthContext.jsx';
@@ -35,6 +36,7 @@ function App() {
       <Route path="/teacherview/:id" element={<ProtectedRoute><TeacherView /></ProtectedRoute>} />
       <Route path="/studenthistory" element={<ProtectedRoute><StudentHistory /></ProtectedRoute>} />
       <Route path="/studentactivetutoringlist" element={<ProtectedRoute><StudentActiveTutoringList /></ProtectedRoute>} />
+      <Route path="/tutoringdetails" element={<ProtectedRoute><TutoringDetails /></ProtectedRoute>} />
       
       {/* Ruta 404 */}
       <Route path="*" element={<NotFound />} />
