@@ -3,10 +3,11 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Login from "./components/Login";
 import StudentDashboard from "./components/StudentDashboard";
 import SearchTutoring from "./components/SearchTutoring";
-import TeacherView from "./components/TeacherView";
 import StudentHistory from "./components/StudentHistory";
 import StudentActiveTutoringList from "./components/StudentActiveTutoringList";
 import TutoringDetails from "./components/TutoringDetails";
+import TeacherView from "./components/TeacherView";
+import TeacherDashboard from "./components/TeacherDashboard";
 import Register from "./components/Register";
 import NotFound from "./components/NotFound";
 import PrivateLayout from "./components/PrivateLayout.jsx";
@@ -102,6 +103,17 @@ function App() {
           <ProtectedRoute>
             <PrivateLayout>
               <TutoringDetails />
+            </PrivateLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/teacher/*"
+        element={
+          <ProtectedRoute>
+            <PrivateLayout>
+              <TeacherDashboard />
             </PrivateLayout>
           </ProtectedRoute>
         }
