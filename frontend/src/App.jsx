@@ -1,14 +1,16 @@
-import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Login from './components/Login';
-import StudentDashboard from './components/StudentDashboard';
-import SearchTutoring from './components/SearchTutoring';
-import TeacherView from './components/TeacherView';
-import Register from './components/Register';
-import NotFound from './components/NotFound';
-import PrivateLayout from './components/PrivateLayout.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
-
+import React from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import Login from "./components/Login";
+import StudentDashboard from "./components/StudentDashboard";
+import SearchTutoring from "./components/SearchTutoring";
+import TeacherView from "./components/TeacherView";
+import StudentHistory from "./components/StudentHistory";
+import StudentActiveTutoringList from "./components/StudentActiveTutoringList";
+import TutoringDetails from "./components/TutoringDetails";
+import Register from "./components/Register";
+import NotFound from "./components/NotFound";
+import PrivateLayout from "./components/PrivateLayout.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 function App() {
   return (
@@ -67,6 +69,39 @@ function App() {
           <ProtectedRoute>
             <PrivateLayout>
               <TeacherView />
+            </PrivateLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/studenthistory"
+        element={
+          <ProtectedRoute>
+            <PrivateLayout>
+              <StudentHistory />
+            </PrivateLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/studentactivetutoringlist"
+        element={
+          <ProtectedRoute>
+            <PrivateLayout>
+              <StudentActiveTutoringList />
+            </PrivateLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/tutoringdetails"
+        element={
+          <ProtectedRoute>
+            <PrivateLayout>
+              <TutoringDetails />
             </PrivateLayout>
           </ProtectedRoute>
         }

@@ -142,15 +142,6 @@ function TeacherView() {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      {/* Header */}
-      <header className="w-full bg-gradient-to-r from-sky-900 via-sky-700 to-sky-500 border-b border-sky-900">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <Link to="/dashboard" className="text-white font-bold text-xl sm:text-2xl">EDUC</Link>
-          <span className="text-white">
-            <i className="fa-regular fa-circle-user fa-lg"></i>
-          </span>
-        </div>
-      </header>
 
       {/* Main content */}
       <main className="container mx-auto px-6 py-8">
@@ -216,14 +207,6 @@ function TeacherView() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full bg-gradient-to-r from-purple-800 via-pink-600 to-red-400 border-t border-purple-800 mt-8">
-        <div className="container mx-auto px-6 py-6 flex justify-center">
-          <span className="text-white font-medium text-sm sm:text-base">
-            © {new Date().getFullYear()} EDUC. Todos los derechos reservados.
-          </span>
-        </div>
-      </footer>
     </div>
   );
 }
