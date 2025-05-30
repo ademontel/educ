@@ -153,6 +153,7 @@ async def check_auth(current_user = Depends(get_current_user)):
         "user": {
             "id": current_user.id,
             "name": current_user.name,
-            "email": current_user.email
+            "email": current_user.email,
+            "role": current_user.role
         }
     }
