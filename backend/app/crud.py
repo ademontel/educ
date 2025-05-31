@@ -78,3 +78,37 @@ def verify_password(db: Session, email: str, password: str) -> bool:
     if not user:
         return False
     return check_password_hash(user.password, password)
+
+# CRUD para archivos de medios del docente
+def create_teacher_media_file(db: Session, media_file: schemas.TeacherMediaFileCreate):
+    db_media_file = models.TeacherMediaFile(**media_file.dict())
+    db.add(db_media_file)
+    db.commit()
+    db.refresh(db_media_file)
+    return db_media_file
+
+def get_teacher_media_files(db: Session, teacher_id: int):
+    return db.query(models.TeacherMediaFile).filter(
+        models.TeacherMediaFile.teacher_id == teacher_id
+    ).order_by(models.TeacherMediaFile.uploaded_at.desc()).all()
+
+def get_teacher_media_file(db: Session, file_id: int, teacher_id: int):
+    return db.query(models.TeacherMediaFile).filter(
+        models.TeacherMediaFile.id == file_id,
+        models.TeacherMediaFile.teacher_id == teacher_id
+    ).first()
+
+def delete_teacher_media_file(db: Session, file_id: int, teacher_id: int):
+    db_file = get_teacher_media_file(db, file_id, teacher_id)
+    if db_file:
+        db.delete(db_file)
+        db.commit()
+    return db_file
+
+def update_teacher_media_file_description(db: Session, file_id: int, teacher_id: int, description: str):
+    db_file = get_teacher_media_file(db, file_id, teacher_id)
+    if db_file:
+        db_file.description = description
+        db.commit()
+        db.refresh(db_file)
+    return db_file

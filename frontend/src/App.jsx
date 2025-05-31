@@ -8,6 +8,9 @@ import StudentActiveTutoringList from "./components/StudentActiveTutoringList";
 import TutoringDetails from "./components/TutoringDetails";
 import TeacherView from "./components/TeacherView";
 import TeacherDashboard from "./components/TeacherDashboard";
+import TeacherProfile from "./components/TeacherProfile";
+import StudentProfile from "./components/StudentProfile";
+import TeacherMediaLibrary from "./components/TeacherMediaLibrary";
 import Register from "./components/Register";
 import NotFound from "./components/NotFound";
 import PrivateLayout from "./components/PrivateLayout.jsx";
@@ -29,15 +32,46 @@ function App() {
       <Route
         path="/dashboard"
         element={<RoleRoute redirectOnly={true} />}
-      />
-
-      {/* Rutas específicas para estudiantes */}
+      />      {/* Rutas específicas para estudiantes */}
       <Route
         path="/student"
         element={
           <RoleRoute allowedRoles={['student', 'alumno']}>
             <PrivateLayout>
               <StudentDashboard />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/student/dashboard"
+        element={
+          <RoleRoute allowedRoles={['student', 'alumno']}>
+            <PrivateLayout>
+              <StudentDashboard />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/student/profile"
+        element={
+          <RoleRoute allowedRoles={['student', 'alumno']}>
+            <PrivateLayout>
+              <StudentProfile />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/student/profile/:id"
+        element={
+          <RoleRoute allowedRoles={['student', 'alumno', 'teacher', 'docente']}>
+            <PrivateLayout>
+              <StudentProfile />
             </PrivateLayout>
           </RoleRoute>
         }
@@ -55,7 +89,7 @@ function App() {
       />
       
       <Route
-        path="/student/active-tutoring"
+        path="/student/tutoring"
         element={
           <RoleRoute allowedRoles={['student', 'alumno']}>
             <PrivateLayout>
@@ -87,6 +121,70 @@ function App() {
           </RoleRoute>
         }
       />
+
+      <Route
+        path="/teacher/dashboard"
+        element={
+          <RoleRoute allowedRoles={['teacher', 'docente']}>
+            <PrivateLayout>
+              <TeacherDashboard />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/teacher/profile"
+        element={
+          <RoleRoute allowedRoles={['teacher', 'docente']}>
+            <PrivateLayout>
+              <TeacherProfile />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/teacher/profile/:id"
+        element={
+          <RoleRoute allowedRoles={['teacher', 'docente', 'student', 'alumno']}>
+            <PrivateLayout>
+              <TeacherProfile />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/teacher/students"
+        element={
+          <RoleRoute allowedRoles={['teacher', 'docente']}>
+            <PrivateLayout>
+              <TeacherView />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />      <Route
+        path="/teacher/tutoring"
+        element={
+          <RoleRoute allowedRoles={['teacher', 'docente']}>
+            <PrivateLayout>
+              <TeacherDashboard />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/teacher/media"
+        element={
+          <RoleRoute allowedRoles={['teacher', 'docente']}>
+            <PrivateLayout>
+              <TeacherMediaLibrary />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
       
       <Route
         path="/teacher/view/:id"
@@ -109,9 +207,7 @@ function App() {
             </PrivateLayout>
           </RoleRoute>
         }
-      />
-
-      {/* Rutas legacy - redirigir a las nuevas rutas */}
+      />      {/* Rutas legacy - redirigir a las nuevas rutas */}
       <Route
         path="/studenthistory"
         element={<Navigate to="/student/history" replace />}
@@ -119,7 +215,12 @@ function App() {
       
       <Route
         path="/studentactivetutoringlist"
-        element={<Navigate to="/student/active-tutoring" replace />}
+        element={<Navigate to="/student/tutoring" replace />}
+      />
+
+      <Route
+        path="/student/active-tutoring"
+        element={<Navigate to="/student/tutoring" replace />}
       />
       
       <Route

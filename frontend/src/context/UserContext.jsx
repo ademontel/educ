@@ -54,7 +54,6 @@ export const UserProvider = ({ children }) => {
       throw error;
     }
   };
-
   const registerUser = async (userData) => {
     console.log("UserData que se envía:", userData); // debug
 
@@ -90,6 +89,33 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  const getUserProfile = async (userId) => {
+    try {
+      const response = await fetch(`http://localhost:8000/users/${userId}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('No tienes permisos para ver este perfil');
+        } else if (response.status === 404) {
+          throw new Error('Usuario no encontrado');
+        } else {
+          throw new Error('Error al cargar el perfil');
+        }
+      }
+
+      const userData = await response.json();
+      return { user: userData };
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return { error: error.message };
+    }
+  };
+
   return (
     <UserContext.Provider value={{
       users: state.users,
@@ -98,7 +124,8 @@ export const UserProvider = ({ children }) => {
       checkEmailExists,
       registerUser,
       updateUser,
-      deleteUser
+      deleteUser,
+      getUserProfile
     }}>
       {children}
     </UserContext.Provider>

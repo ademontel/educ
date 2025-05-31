@@ -83,10 +83,29 @@ class ReviewBase(BaseModel):
     rating: int
     comment: Optional[str]
 
+class TeacherMediaFileBase(BaseModel):
+    filename: str
+    original_filename: str
+    file_size: int
+    mime_type: str
+    description: Optional[str] = None
+
+class TeacherMediaFileCreate(TeacherMediaFileBase):
+    teacher_id: int
+    file_path: str
+
+class TeacherMediaFileOut(TeacherMediaFileBase):
+    id: int
+    teacher_id: int
+    uploaded_at: datetime
+    class Config:
+        from_attributes = True
+
 class ResourceBase(BaseModel):
     tutorship_id: int
+    media_file_id: Optional[int] = None
     title: str
-    file_url: str
+    file_url: Optional[str] = None
     uploaded_at: datetime
 
 class LiveSessionBase(BaseModel):

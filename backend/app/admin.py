@@ -3,7 +3,7 @@ from wtforms.fields import SelectField, DateTimeField
 from .database import engine
 from .models import (
     User, Professor, Subject, ProfessorSubject,
-    Tutorship, Payment, Review, Resource, LiveSession,
+    Tutorship, Payment, Review, Resource, LiveSession, TeacherMediaFile,
     UserRole, SubjectLevel, TutorshipStatus
 )
 
@@ -151,6 +151,63 @@ class ReviewAdmin(ModelView, model=Review):
         Review.rating, Review.comment
     ]
 
+class TeacherMediaFileAdmin(ModelView, model=TeacherMediaFile):
+    name = "Archivo de Medios"
+    name_plural = "Archivos de Medios"
+    icon = "fa-solid fa-file-upload"
+    category = "Material Didáctico"
+
+    column_list = [
+        TeacherMediaFile.id, "teacher.name", TeacherMediaFile.original_filename,
+        TeacherMediaFile.file_size, TeacherMediaFile.mime_type, 
+        TeacherMediaFile.uploaded_at, TeacherMediaFile.description
+    ]
+    column_filters = [
+        "teacher.name", "teacher.email", TeacherMediaFile.mime_type, 
+        TeacherMediaFile.uploaded_at
+    ]
+    column_searchable_list = [
+        TeacherMediaFile.original_filename, TeacherMediaFile.description, 
+        "teacher.name", "teacher.email"
+    ]
+    column_sortable_list = [
+        TeacherMediaFile.id, TeacherMediaFile.original_filename, 
+        TeacherMediaFile.file_size, TeacherMediaFile.uploaded_at, "teacher.name"
+    ]
+    
+    column_details_list = [
+        TeacherMediaFile.id, "teacher", TeacherMediaFile.filename, 
+        TeacherMediaFile.original_filename, TeacherMediaFile.file_path,
+        TeacherMediaFile.file_size, TeacherMediaFile.mime_type,
+        TeacherMediaFile.uploaded_at, TeacherMediaFile.description
+    ]
+
+    # Formatear el tamaño del archivo de manera legible
+    column_formatters = {
+        TeacherMediaFile.file_size: lambda m, a: f"{m.file_size / 1024:.1f} KB" if m.file_size else "N/A",
+        TeacherMediaFile.uploaded_at: lambda m, a: m.uploaded_at.strftime("%d/%m/%Y %H:%M") if m.uploaded_at else "N/A"
+    }
+
+    # Solo permitir editar la descripción
+    form_columns = [TeacherMediaFile.description]
+    
+    form_overrides = {
+        TeacherMediaFile.uploaded_at: DateTimeField,
+    }
+
+    # Configuración de permisos
+    can_create = False  # Los archivos se crean a través de la API
+    can_edit = True     # Solo se puede editar la descripción
+    can_delete = True   # Los admins pueden eliminar archivos
+    can_view_details = True
+
+    # Paginación
+    page_size = 50
+    page_size_options = [25, 50, 100, 200]
+
+    # Ordenamiento por defecto (más recientes primero)
+    column_default_sort = [(TeacherMediaFile.uploaded_at, True)]
+
 class ResourceAdmin(ModelView, model=Resource):
     name = "Recurso"
     name_plural = "Recursos"
@@ -158,17 +215,36 @@ class ResourceAdmin(ModelView, model=Resource):
     category = "Material Didáctico"
 
     column_list = [
-        Resource.id, "tutorship.id", Resource.title,
-        Resource.file_url, Resource.uploaded_at
+        Resource.id, "tutorship.id", "tutorship.professor.user.name", 
+        "tutorship.student.name", Resource.title, Resource.uploaded_at
     ]
-    column_filters = ["tutorship.id", Resource.uploaded_at]
+    column_filters = [
+        "tutorship.id", "tutorship.professor.user.name", 
+        "tutorship.student.name", Resource.uploaded_at
+    ]
+    column_searchable_list = [Resource.title, "tutorship.professor.user.name"]
+    column_sortable_list = [Resource.id, Resource.title, Resource.uploaded_at]
+
+    column_details_list = [
+        Resource.id, "tutorship", Resource.title, Resource.file_url, 
+        Resource.uploaded_at, "media_file"
+    ]
 
     form_columns = [
-        Resource.tutorship_id, Resource.title, Resource.file_url, Resource.uploaded_at
+        Resource.tutorship_id, Resource.title, Resource.file_url, 
+        Resource.uploaded_at, Resource.media_file_id
     ]
     form_overrides = {
         Resource.uploaded_at: DateTimeField,
     }
+
+    # Formatear fecha
+    column_formatters = {
+        Resource.uploaded_at: lambda m, a: m.uploaded_at.strftime("%d/%m/%Y %H:%M") if m.uploaded_at else "N/A"
+    }
+
+    # Ordenamiento por defecto (más recientes primero)
+    column_default_sort = [(Resource.uploaded_at, True)]
 
 class LiveSessionAdmin(ModelView, model=LiveSession):
     name = "Sesión en Vivo"
@@ -201,6 +277,7 @@ def setup_admin(app):
     admin.add_view(TutorshipAdmin)
     admin.add_view(PaymentAdmin)
     admin.add_view(ReviewAdmin)
+    admin.add_view(TeacherMediaFileAdmin)
     admin.add_view(ResourceAdmin)
     admin.add_view(LiveSessionAdmin)
 

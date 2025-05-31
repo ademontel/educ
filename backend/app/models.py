@@ -100,14 +100,32 @@ class Review(Base):
     rating = Column(Integer)
     comment = Column(Text)
 
+class TeacherMediaFile(Base):
+    __tablename__ = "teacher_media_files"
+
+    id = Column(Integer, primary_key=True)
+    teacher_id = Column(Integer, ForeignKey("users.id"))
+    filename = Column(String, nullable=False)
+    original_filename = Column(String, nullable=False)
+    file_path = Column(String, nullable=False)
+    file_size = Column(Integer)
+    mime_type = Column(String)
+    uploaded_at = Column(DateTime)
+    description = Column(Text)
+
+    teacher = relationship("User")
+
 class Resource(Base):
     __tablename__ = "resources"
 
     id = Column(Integer, primary_key=True)
     tutorship_id = Column(Integer, ForeignKey("tutorships.id"))
+    media_file_id = Column(Integer, ForeignKey("teacher_media_files.id"), nullable=True)
     title = Column(String)
     file_url = Column(String)
     uploaded_at = Column(DateTime)
+
+    media_file = relationship("TeacherMediaFile")
 
 class LiveSession(Base):
     __tablename__ = "live_sessions"

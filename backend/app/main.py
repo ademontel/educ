@@ -1,12 +1,16 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from . import models, schemas, crud
 from .database import engine, get_db
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from .auth import get_current_user, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
-from datetime import timedelta
+from datetime import timedelta, datetime
 from .schemas import UserRole
+import os
+import uuid
+import shutil
+from pathlib import Path
 
 import logging
 
@@ -42,12 +46,27 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_users(db, skip=skip, limit=limit)
 
 @app.get("/users/{user_id}", response_model=schemas.UserOut)
-def read_user(user_id: int, db: Session = Depends(get_db)):
+def read_user(user_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     db_user = crud.get_user(db, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
-    return db_user
-    return {"exists": db_user is not None}
+    
+    # Validación de autorización:
+    # - Usuarios pueden ver su propio perfil
+    # - Profesores pueden ver perfiles de estudiantes
+    # - Estudiantes pueden ver perfiles de profesores
+    # - Admins pueden ver cualquier perfil
+    
+    if (current_user.id == user_id or 
+        current_user.role == 'admin' or
+        (current_user.role in ['teacher', 'docente'] and db_user.role in ['student', 'alumno']) or
+        (current_user.role in ['student', 'alumno'] and db_user.role in ['teacher', 'docente'])):
+        return db_user
+    else:
+        raise HTTPException(
+            status_code=403, 
+            detail="No tienes permisos para ver este perfil"
+        )
 
 @app.post("/users", response_model=schemas.UserOut)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -157,3 +176,168 @@ async def check_auth(current_user = Depends(get_current_user)):
             "role": current_user.role
         }
     }
+
+# Configuración para archivos
+UPLOAD_DIR = Path("uploads/teacher_media")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+ALLOWED_EXTENSIONS = {
+    'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx',
+    'jpg', 'jpeg', 'png', 'gif', 'bmp',
+    'mp4', 'avi', 'mov', 'wmv', 'flv',
+    'mp3', 'wav', 'aac', 'flac',
+    'zip', 'rar', '7z', 'txt'
+}
+
+def is_allowed_file(filename: str) -> bool:
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.post("/teachers/{teacher_id}/media", response_model=schemas.TeacherMediaFileOut)
+async def upload_teacher_media(
+    teacher_id: int,
+    file: UploadFile = File(...),
+    description: str = Form(""),
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden subir archivos")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes subir archivos a tu propia biblioteca")
+    
+    # Verificar que el archivo es válido
+    if not is_allowed_file(file.filename):
+        raise HTTPException(status_code=400, detail="Tipo de archivo no permitido")
+    
+    # Generar nombre único para el archivo
+    file_extension = file.filename.rsplit('.', 1)[1].lower()
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = UPLOAD_DIR / unique_filename
+    
+    try:
+        # Guardar archivo
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Obtener información del archivo
+        file_size = os.path.getsize(file_path)
+        
+        # Crear registro en la base de datos
+        media_file_data = schemas.TeacherMediaFileCreate(
+            teacher_id=teacher_id,
+            filename=unique_filename,
+            original_filename=file.filename,
+            file_path=str(file_path),
+            file_size=file_size,
+            mime_type=file.content_type or "application/octet-stream",
+            description=description
+        )
+        
+        db_media_file = crud.create_teacher_media_file(db, media_file_data)
+        db_media_file.uploaded_at = datetime.now()
+        db.commit()
+        
+        return db_media_file
+        
+    except Exception as e:
+        # Si hay error, eliminar el archivo
+        if file_path.exists():
+            os.remove(file_path)
+        raise HTTPException(status_code=500, detail=f"Error al subir archivo: {str(e)}")
+
+@app.get("/teachers/{teacher_id}/media", response_model=list[schemas.TeacherMediaFileOut])
+def get_teacher_media_files(
+    teacher_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden acceder a sus archivos")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes acceder a tu propia biblioteca")
+    
+    return crud.get_teacher_media_files(db, teacher_id)
+
+@app.get("/teachers/{teacher_id}/media/{file_id}")
+def download_teacher_media_file(
+    teacher_id: int,
+    file_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Verificar permisos
+    if current_user.role not in ['teacher', 'docente', 'student', 'alumno']:
+        raise HTTPException(status_code=403, detail="Sin permisos para descargar archivos")
+    
+    # Los docentes solo pueden acceder a sus propios archivos
+    # Los estudiantes pueden acceder a archivos de sus docentes (esto se puede expandir más tarde)
+    if current_user.role in ['teacher', 'docente'] and current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes acceder a tu propia biblioteca")
+    
+    media_file = crud.get_teacher_media_file(db, file_id, teacher_id)
+    if not media_file:
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
+    
+    file_path = Path(media_file.file_path)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Archivo no encontrado en el servidor")
+    
+    return FileResponse(
+        path=file_path,
+        filename=media_file.original_filename,
+        media_type=media_file.mime_type
+    )
+
+@app.delete("/teachers/{teacher_id}/media/{file_id}")
+def delete_teacher_media_file(
+    teacher_id: int,
+    file_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden eliminar archivos")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes eliminar archivos de tu propia biblioteca")
+    
+    media_file = crud.get_teacher_media_file(db, file_id, teacher_id)
+    if not media_file:
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
+    
+    # Eliminar archivo del sistema
+    file_path = Path(media_file.file_path)
+    if file_path.exists():
+        os.remove(file_path)
+    
+    # Eliminar registro de la base de datos
+    crud.delete_teacher_media_file(db, file_id, teacher_id)
+    
+    return {"detail": "Archivo eliminado exitosamente"}
+
+@app.put("/teachers/{teacher_id}/media/{file_id}/description")
+def update_media_file_description(
+    teacher_id: int,
+    file_id: int,
+    description: str = Form(...),
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden editar archivos")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes editar archivos de tu propia biblioteca")
+    
+    updated_file = crud.update_teacher_media_file_description(db, file_id, teacher_id, description)
+    if not updated_file:
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
+    
+    return updated_file
