@@ -40,8 +40,7 @@ class ProfessorAdmin(ModelView, model=Professor):
     icon = "fa-solid fa-chalkboard-teacher"
     category = "Gestión de Usuarios"
 
-    column_list = [Professor.id, Professor.ranking, "user.name", "subjects", "tutorships"]
-    column_filters = ["user.name"]
+    column_list = [Professor.id, Professor.ranking, "user", "subjects", "tutorships"]
     column_details_list = [Professor.id, Professor.abstract, Professor.picture, Professor.ranking, "user", "subjects", "tutorships"]
 
     form_columns = [Professor.user, Professor.abstract, Professor.picture, Professor.ranking]
@@ -71,8 +70,7 @@ class ProfessorSubjectAdmin(ModelView, model=ProfessorSubject):
     icon = "fa-solid fa-user-graduate"
     category = "Contenido Educativo"
 
-    column_list = [ProfessorSubject.id, "professor.user.name", "subject.name"]
-    column_filters = ["professor.user.name", "subject.name"]
+    column_list = [ProfessorSubject.id, "professor", "subject"]
     column_details_list = [ProfessorSubject.id, "professor", "subject"]
 
     form_columns = [ProfessorSubject.professor, ProfessorSubject.subject]
@@ -84,12 +82,11 @@ class TutorshipAdmin(ModelView, model=Tutorship):
     category = "Gestión de Clases"
 
     column_list = [
-        Tutorship.id, "professor.user.name", "student.name", 
-        "subject.name", Tutorship.status, Tutorship.start_time, 
+        Tutorship.id, "professor", "student", 
+        "subject", Tutorship.status, Tutorship.start_time, 
         Tutorship.end_time, Tutorship.price_usdt, Tutorship.platform_fee_pct
     ]
     column_filters = [
-        "professor.user.name", "student.name", "subject.name",
         Tutorship.status, Tutorship.start_time, Tutorship.end_time
     ]
     column_details_list = [
@@ -107,24 +104,32 @@ class TutorshipAdmin(ModelView, model=Tutorship):
         Tutorship.status: SelectField,
         Tutorship.start_time: DateTimeField,
         Tutorship.end_time: DateTimeField,
-    }
+    }    
     form_args = {
         "status": {
             "choices": [(s.value, s.value.capitalize()) for s in TutorshipStatus]
         }
     }
 
+    async def insert(self, request, obj):
+        # Personalizar la inserción si es necesario
+        return await super().insert(request, obj)
+
+    async def update(self, request, pk, obj):
+        # Personalizar la actualización si es necesario
+        return await super().update(request, pk, obj)
+
 class PaymentAdmin(ModelView, model=Payment):
     name = "Pago"
     name_plural = "Pagos"
     icon = "fa-solid fa-dollar-sign"
     category = "Finanzas"
-
+    
     column_list = [
-        Payment.id, "tutorship.id", Payment.transaction_hash,
+        Payment.id, Payment.tutorship_id, Payment.transaction_hash,
         Payment.amount_usdt, Payment.timestamp, Payment.status
     ]
-    column_filters = ["status", Payment.timestamp]
+    column_filters = [Payment.status, Payment.timestamp]
 
     form_columns = [
         Payment.tutorship_id, Payment.transaction_hash,
@@ -141,10 +146,10 @@ class ReviewAdmin(ModelView, model=Review):
     category = "Gestión de Clases"
 
     column_list = [
-        Review.id, "student.name", "professor.user.name", 
-        "tutorship.id", Review.rating, Review.comment
+        Review.id, Review.student_id, Review.professor_id, 
+        Review.tutorship_id, Review.rating, Review.comment
     ]
-    column_filters = ["student.name", "professor.user.name", Review.rating]
+    column_filters = [Review.rating]
 
     form_columns = [
         Review.student_id, Review.professor_id, Review.tutorship_id,
@@ -158,21 +163,19 @@ class TeacherMediaFileAdmin(ModelView, model=TeacherMediaFile):
     category = "Material Didáctico"
 
     column_list = [
-        TeacherMediaFile.id, "teacher.name", TeacherMediaFile.original_filename,
+        TeacherMediaFile.id, "teacher", TeacherMediaFile.original_filename,
         TeacherMediaFile.file_size, TeacherMediaFile.mime_type, 
         TeacherMediaFile.uploaded_at, TeacherMediaFile.description
     ]
     column_filters = [
-        "teacher.name", "teacher.email", TeacherMediaFile.mime_type, 
-        TeacherMediaFile.uploaded_at
+        TeacherMediaFile.mime_type, TeacherMediaFile.uploaded_at
     ]
     column_searchable_list = [
-        TeacherMediaFile.original_filename, TeacherMediaFile.description, 
-        "teacher.name", "teacher.email"
+        TeacherMediaFile.original_filename, TeacherMediaFile.description
     ]
     column_sortable_list = [
         TeacherMediaFile.id, TeacherMediaFile.original_filename, 
-        TeacherMediaFile.file_size, TeacherMediaFile.uploaded_at, "teacher.name"
+        TeacherMediaFile.file_size, TeacherMediaFile.uploaded_at
     ]
     
     column_details_list = [
@@ -215,14 +218,12 @@ class ResourceAdmin(ModelView, model=Resource):
     category = "Material Didáctico"
 
     column_list = [
-        Resource.id, "tutorship.id", "tutorship.professor.user.name", 
-        "tutorship.student.name", Resource.title, Resource.uploaded_at
+        Resource.id, Resource.tutorship_id, Resource.title, Resource.uploaded_at
     ]
     column_filters = [
-        "tutorship.id", "tutorship.professor.user.name", 
-        "tutorship.student.name", Resource.uploaded_at
+        Resource.tutorship_id, Resource.uploaded_at
     ]
-    column_searchable_list = [Resource.title, "tutorship.professor.user.name"]
+    column_searchable_list = [Resource.title]
     column_sortable_list = [Resource.id, Resource.title, Resource.uploaded_at]
 
     column_details_list = [
@@ -251,12 +252,12 @@ class LiveSessionAdmin(ModelView, model=LiveSession):
     name_plural = "Sesiones en Vivo"
     icon = "fa-solid fa-video"
     category = "Gestión de Clases"
-
+    
     column_list = [
-        LiveSession.id, "tutorship.id", LiveSession.start_time,
+        LiveSession.id, LiveSession.tutorship_id, LiveSession.start_time,
         LiveSession.end_time, LiveSession.session_url, LiveSession.whiteboard_url
     ]
-    column_filters = ["tutorship.id", LiveSession.start_time]
+    column_filters = [LiveSession.tutorship_id, LiveSession.start_time]
 
     form_columns = [
         LiveSession.tutorship_id, LiveSession.start_time, LiveSession.end_time,

@@ -11,6 +11,7 @@ import TeacherDashboard from "./components/TeacherDashboard";
 import TeacherProfile from "./components/TeacherProfile";
 import StudentProfile from "./components/StudentProfile";
 import TeacherMediaLibrary from "./components/TeacherMediaLibrary";
+import TeacherTutorships from "./components/TeacherTutorships";
 import Register from "./components/Register";
 import NotFound from "./components/NotFound";
 import PrivateLayout from "./components/PrivateLayout.jsx";
@@ -169,7 +170,7 @@ function App() {
         element={
           <RoleRoute allowedRoles={['teacher', 'docente']}>
             <PrivateLayout>
-              <TeacherDashboard />
+              <TeacherTutorships />
             </PrivateLayout>
           </RoleRoute>
         }

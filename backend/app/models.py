@@ -21,6 +21,9 @@ class User(Base):
 
     professor_profile = relationship("Professor", uselist=False, back_populates="user")
     student_tutorships = relationship("Tutorship", back_populates="student", foreign_keys='Tutorship.student_id')
+    
+    def __str__(self):
+        return f"{self.name} ({self.email})"
 
 class Professor(Base):
     __tablename__ = "professors"
@@ -33,6 +36,9 @@ class Professor(Base):
     user = relationship("User", back_populates="professor_profile")
     subjects = relationship("ProfessorSubject", back_populates="professor")
     tutorships = relationship("Tutorship", back_populates="professor")
+    
+    def __str__(self):
+        return f"Prof. {self.user.name}" if self.user else f"Professor #{self.id}"
 
 class SubjectLevel(str, enum.Enum):
     primaria = "primaria"
@@ -46,6 +52,9 @@ class Subject(Base):
     name = Column(String, unique=True)
     description = Column(Text)
     level = Column(Enum(SubjectLevel), nullable=False)
+    
+    def __str__(self):
+        return f"{self.name} ({self.level})"
 
 class ProfessorSubject(Base):
     __tablename__ = "professor_subjects"
@@ -56,6 +65,11 @@ class ProfessorSubject(Base):
 
     professor = relationship("Professor", back_populates="subjects")
     subject = relationship("Subject")
+    
+    def __str__(self):
+        professor_name = self.professor.user.name if self.professor and self.professor.user else f"Professor #{self.professor_id}"
+        subject_name = self.subject.name if self.subject else f"Subject #{self.subject_id}"
+        return f"{professor_name} - {subject_name}"
 
 class TutorshipStatus(str, enum.Enum):
     pending = "pending"
@@ -79,6 +93,12 @@ class Tutorship(Base):
     professor = relationship("Professor", back_populates="tutorships")
     student = relationship("User", back_populates="student_tutorships", foreign_keys=[student_id])
     subject = relationship("Subject")
+    
+    def __str__(self):
+        student_name = self.student.name if self.student else f"Student #{self.student_id}"
+        professor_name = self.professor.user.name if self.professor and self.professor.user else f"Professor #{self.professor_id}"
+        subject_name = self.subject.name if self.subject else f"Subject #{self.subject_id}"
+        return f"Tutoría #{self.id}: {student_name} - {professor_name} ({subject_name})"
 
 class Payment(Base):
     __tablename__ = "payments"
@@ -89,6 +109,9 @@ class Payment(Base):
     amount_usdt = Column(Float)
     timestamp = Column(DateTime)
     status = Column(String)
+    
+    def __str__(self):
+        return f"Payment #{self.id} - ${self.amount_usdt} USDT ({self.status})"
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -99,6 +122,11 @@ class Review(Base):
     tutorship_id = Column(Integer, ForeignKey("tutorships.id"))
     rating = Column(Integer)
     comment = Column(Text)
+    
+    def __str__(self):
+        student_name = f"Student #{self.student_id}"
+        professor_name = f"Professor #{self.professor_id}"
+        return f"Review #{self.id}: {student_name} → {professor_name} ({self.rating}★)"
 
 class TeacherMediaFile(Base):
     __tablename__ = "teacher_media_files"
@@ -114,6 +142,9 @@ class TeacherMediaFile(Base):
     description = Column(Text)
 
     teacher = relationship("User")
+    
+    def __str__(self):
+        return f"Media: {self.original_filename}"
 
 class Resource(Base):
     __tablename__ = "resources"
@@ -126,6 +157,9 @@ class Resource(Base):
     uploaded_at = Column(DateTime)
 
     media_file = relationship("TeacherMediaFile")
+    
+    def __str__(self):
+        return f"Resource: {self.title}"
 
 class LiveSession(Base):
     __tablename__ = "live_sessions"
@@ -136,3 +170,6 @@ class LiveSession(Base):
     end_time = Column(DateTime)
     session_url = Column(String)
     whiteboard_url = Column(String)
+    
+    def __str__(self):
+        return f"Live Session #{self.id} (Tutorship #{self.tutorship_id})"

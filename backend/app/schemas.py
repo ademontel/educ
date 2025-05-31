@@ -114,3 +114,27 @@ class LiveSessionBase(BaseModel):
     end_time: datetime
     session_url: str
     whiteboard_url: str
+
+class TutorshipDetailOut(BaseModel):
+    id: int
+    professor_id: int
+    student_id: int
+    subject_id: int
+    status: str
+    start_time: Optional[datetime]
+    end_time: Optional[datetime]
+    price_usdt: float
+    platform_fee_pct: float
+    
+    # Información relacionada
+    student: Optional[UserOut] = None
+    subject: Optional[SubjectOut] = None
+    
+    class Config:
+        from_attributes = True
+
+class TutorshipStatusUpdate(BaseModel):
+    status: str
+    
+    class Config:
+        from_attributes = True

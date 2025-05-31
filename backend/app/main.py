@@ -107,6 +107,22 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return {"detail": "User deleted"}
 
+@app.post("/admin/migrate-professor-profiles")
+def migrate_professor_profiles(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Crear perfiles de profesor para usuarios con rol teacher que no los tienen"""
+    # Solo admins pueden ejecutar esta migración
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Solo los administradores pueden ejecutar migraciones")
+    
+    created_count = crud.create_missing_professor_profiles(db)
+    return {
+        "message": f"Se crearon {created_count} perfiles de profesor",
+        "created_count": created_count
+    }
+
 from datetime import timedelta
 from fastapi.security import OAuth2PasswordRequestForm
 from .auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user
@@ -186,7 +202,7 @@ ALLOWED_EXTENSIONS = {
     'jpg', 'jpeg', 'png', 'gif', 'bmp',
     'mp4', 'avi', 'mov', 'wmv', 'flv',
     'mp3', 'wav', 'aac', 'flac',
-    'zip', 'rar', '7z', 'txt'
+    'zip', 'rar', '7z', 'txt', 'webp'
 }
 
 def is_allowed_file(filename: str) -> bool:
@@ -341,3 +357,48 @@ def update_media_file_description(
         raise HTTPException(status_code=404, detail="Archivo no encontrado")
     
     return updated_file
+
+@app.get("/teachers/{teacher_id}/tutorships", response_model=list[schemas.TutorshipDetailOut])
+def get_teacher_tutorships(
+    teacher_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden ver sus tutorías")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes ver tus propias tutorías")
+    
+    return crud.get_teacher_tutorships(db, teacher_id)
+
+@app.put("/teachers/{teacher_id}/tutorships/{tutorship_id}/status", response_model=schemas.TutorshipDetailOut)
+def update_tutorship_status(
+    teacher_id: int,
+    tutorship_id: int,
+    status_update: schemas.TutorshipStatusUpdate,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden actualizar el estado de las tutorías")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes actualizar tus propias tutorías")
+    
+    # Verificar que la tutoría existe y pertenece al docente
+    tutorship = crud.get_tutorship_by_id(db, tutorship_id)
+    if not tutorship:
+        raise HTTPException(status_code=404, detail="Tutoría no encontrada")
+    
+    if tutorship.professor_id != teacher_id:
+        raise HTTPException(status_code=403, detail="Esta tutoría no te pertenece")
+    
+    # Actualizar el estado
+    updated_tutorship = crud.update_tutorship_status(db, tutorship_id, status_update.status)
+    if not updated_tutorship:
+        raise HTTPException(status_code=400, detail="No se pudo actualizar el estado de la tutoría")
+    
+    return updated_tutorship
