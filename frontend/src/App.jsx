@@ -37,7 +37,7 @@ function App() {
       <Route
         path="/student"
         element={
-          <RoleRoute allowedRoles={['student', 'alumno']}>
+          <RoleRoute allowedRoles={['student']}>
             <PrivateLayout>
               <StudentDashboard />
             </PrivateLayout>
@@ -48,7 +48,7 @@ function App() {
       <Route
         path="/student/dashboard"
         element={
-          <RoleRoute allowedRoles={['student', 'alumno']}>
+          <RoleRoute allowedRoles={['student']}>
             <PrivateLayout>
               <StudentDashboard />
             </PrivateLayout>
@@ -59,7 +59,7 @@ function App() {
       <Route
         path="/student/profile"
         element={
-          <RoleRoute allowedRoles={['student', 'alumno']}>
+          <RoleRoute allowedRoles={['student']}>
             <PrivateLayout>
               <StudentProfile />
             </PrivateLayout>
@@ -70,7 +70,7 @@ function App() {
       <Route
         path="/student/profile/:id"
         element={
-          <RoleRoute allowedRoles={['student', 'alumno', 'teacher', 'docente']}>
+          <RoleRoute allowedRoles={['student', 'teacher']}>
             <PrivateLayout>
               <StudentProfile />
             </PrivateLayout>
@@ -81,7 +81,7 @@ function App() {
       <Route
         path="/student/history"
         element={
-          <RoleRoute allowedRoles={['student', 'alumno']}>
+          <RoleRoute allowedRoles={['student']}>
             <PrivateLayout>
               <StudentHistory />
             </PrivateLayout>
@@ -92,7 +92,7 @@ function App() {
       <Route
         path="/student/tutoring"
         element={
-          <RoleRoute allowedRoles={['student', 'alumno']}>
+          <RoleRoute allowedRoles={['student']}>
             <PrivateLayout>
               <StudentActiveTutoringList />
             </PrivateLayout>
@@ -103,7 +103,7 @@ function App() {
       <Route
         path="/student/tutoring-details"
         element={
-          <RoleRoute allowedRoles={['student', 'alumno']}>
+          <RoleRoute allowedRoles={['student']}>
             <PrivateLayout>
               <TutoringDetails />
             </PrivateLayout>
@@ -115,7 +115,7 @@ function App() {
       <Route
         path="/teacher"
         element={
-          <RoleRoute allowedRoles={['teacher', 'docente']}>
+          <RoleRoute allowedRoles={['teacher']}>
             <PrivateLayout>
               <TeacherDashboard />
             </PrivateLayout>
@@ -126,7 +126,7 @@ function App() {
       <Route
         path="/teacher/dashboard"
         element={
-          <RoleRoute allowedRoles={['teacher', 'docente']}>
+          <RoleRoute allowedRoles={['teacher']}>
             <PrivateLayout>
               <TeacherDashboard />
             </PrivateLayout>
@@ -137,7 +137,7 @@ function App() {
       <Route
         path="/teacher/profile"
         element={
-          <RoleRoute allowedRoles={['teacher', 'docente']}>
+          <RoleRoute allowedRoles={['teacher']}>
             <PrivateLayout>
               <TeacherProfile />
             </PrivateLayout>
@@ -148,7 +148,7 @@ function App() {
       <Route
         path="/teacher/profile/:id"
         element={
-          <RoleRoute allowedRoles={['teacher', 'docente', 'student', 'alumno']}>
+          <RoleRoute allowedRoles={['teacher', 'student']}>
             <PrivateLayout>
               <TeacherProfile />
             </PrivateLayout>
@@ -159,7 +159,7 @@ function App() {
       <Route
         path="/teacher/tutoring"
         element={
-          <RoleRoute allowedRoles={['teacher', 'docente']}>
+          <RoleRoute allowedRoles={['teacher']}>
             <PrivateLayout>
               <TeacherTutorships />
             </PrivateLayout>
@@ -170,7 +170,7 @@ function App() {
       <Route
         path="/teacher/media"
         element={
-          <RoleRoute allowedRoles={['teacher', 'docente']}>
+          <RoleRoute allowedRoles={['teacher']}>
             <PrivateLayout>
               <TeacherMediaLibrary />
             </PrivateLayout>
@@ -181,7 +181,7 @@ function App() {
       <Route
         path="/teacher/view/:id"
         element={
-          <RoleRoute allowedRoles={['teacher', 'docente']}>
+          <RoleRoute allowedRoles={['teacher']}>
             <PrivateLayout>
               <TeacherView />
             </PrivateLayout>
@@ -193,7 +193,7 @@ function App() {
       <Route
         path="/search"
         element={
-          <RoleRoute allowedRoles={['student', 'alumno', 'teacher', 'docente']}>
+          <RoleRoute allowedRoles={['student', 'teacher']}>
             <PrivateLayout>
               <SearchTutoring />
             </PrivateLayout>
