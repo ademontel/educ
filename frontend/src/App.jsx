@@ -157,15 +157,6 @@ function App() {
       />
 
       <Route
-        path="/teacher/students"
-        element={
-          <RoleRoute allowedRoles={['teacher', 'docente']}>
-            <PrivateLayout>
-              <TeacherView />
-            </PrivateLayout>
-          </RoleRoute>
-        }
-      />      <Route
         path="/teacher/tutoring"
         element={
           <RoleRoute allowedRoles={['teacher', 'docente']}>
