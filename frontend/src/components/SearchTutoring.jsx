@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import TeacherCard from "./TeacherCard";
 import { useTeacher } from "../context/TeacherContext";
 
 function SearchTutoring() {
@@ -22,6 +21,10 @@ function SearchTutoring() {
     name: ''
   });
 
+  // Estados para información adicional de docentes
+  const [teachersWithSubjects, setTeachersWithSubjects] = useState([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
+
   // Paginación
   const itemsPerPage = 12;
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,6 +38,54 @@ function SearchTutoring() {
     
     loadInitialData();
   }, []);
+
+  // Cargar materias de cada docente cuando cambie la lista de docentes
+  useEffect(() => {
+    const loadTeachersSubjects = async () => {
+      if (teachers.length === 0) {
+        setTeachersWithSubjects([]);
+        return;
+      }
+
+      setLoadingSubjects(true);
+      try {
+        const teachersWithSubjectsData = await Promise.all(
+          teachers.map(async (teacher) => {
+            try {
+              const response = await fetch(`http://localhost:8000/teachers/${teacher.id}/subjects`, {
+                credentials: 'include'
+              });
+              if (response.ok) {
+                const subjectsData = await response.json();
+                return {
+                  ...teacher,
+                  subjects: subjectsData.map(ts => ts.subject) // Extraer solo la información de la materia
+                };
+              } else {
+                return {
+                  ...teacher,
+                  subjects: []
+                };
+              }
+            } catch (error) {
+              console.error(`Error loading subjects for teacher ${teacher.id}:`, error);
+              return {
+                ...teacher,
+                subjects: []
+              };
+            }
+          })
+        );
+        setTeachersWithSubjects(teachersWithSubjectsData);
+      } catch (error) {
+        console.error('Error loading teachers subjects:', error);
+      } finally {
+        setLoadingSubjects(false);
+      }
+    };
+
+    loadTeachersSubjects();
+  }, [teachers]);
 
   // Aplicar filtros cuando cambien
   useEffect(() => {
@@ -60,10 +111,10 @@ function SearchTutoring() {
   }, [filters]);
 
   // Cálculo de paginación
-  const totalPages = Math.ceil(teachers.length / itemsPerPage);
+  const totalPages = Math.ceil(teachersWithSubjects.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const teachersToDisplay = teachers.slice(startIndex, endIndex);
+  const teachersToDisplay = teachersWithSubjects.slice(startIndex, endIndex);
 
   const goToPage = (page) => {
     if (page < 1 || page > totalPages) return;
@@ -161,9 +212,11 @@ function SearchTutoring() {
         </div>
 
         {/* Mostrar estado de carga */}
-        {isLoading && (
+        {(isLoading || loadingSubjects) && (
           <div className="flex justify-center items-center py-8">
-            <div className="text-white text-lg">Cargando profesores...</div>
+            <div className="text-white text-lg">
+              {isLoading ? 'Cargando profesores...' : 'Cargando materias...'}
+            </div>
           </div>
         )}
 
@@ -175,20 +228,63 @@ function SearchTutoring() {
         )}
 
         {/* Lista de profesores */}
-        {!isLoading && !error && (
+        {!isLoading && !loadingSubjects && !error && (
           <>
             {teachersToDisplay.length > 0 ? (
               <div className="flex flex-wrap justify-center gap-6">
                 {teachersToDisplay.map((teacher) => (
-                  <TeacherCard
-                    key={teacher.id}
-                    id={teacher.id}
-                    name={teacher.name}
-                    username={teacher.email} // Usar email como username
-                    valoracion={4.5} // Valor por defecto ya que no está en el modelo
-                    nivel="Secundario" // Valor por defecto ya que no está en el modelo
-                    materias="Ver materias disponibles" // Texto genérico
-                  />
+                  <div key={teacher.id} className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
+                    <div className="text-center mb-4">
+                      <h3 className="text-xl font-semibold text-white mb-2">{teacher.name}</h3>
+                      <p className="text-gray-400 text-sm">{teacher.email}</p>
+                    </div>
+                    
+                    {/* Materias del docente */}
+                    <div className="mb-4">
+                      <h4 className="text-white text-sm font-medium mb-2">Materias:</h4>
+                      {teacher.subjects && teacher.subjects.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {teacher.subjects.map((subject) => (
+                            <span 
+                              key={subject.id} 
+                              className="bg-blue-600 text-white text-xs px-2 py-1 rounded"
+                            >
+                              {subject.name}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-sm">Sin materias asignadas</p>
+                      )}
+                    </div>
+
+                    {/* Niveles de las materias */}
+                    {teacher.subjects && teacher.subjects.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-white text-sm font-medium mb-2">Niveles:</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {[...new Set(teacher.subjects.map(s => s.level))].map((level) => (
+                            <span 
+                              key={level} 
+                              className="bg-green-600 text-white text-xs px-2 py-1 rounded"
+                            >
+                              {level.charAt(0).toUpperCase() + level.slice(1)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Botón ver perfil */}
+                    <div className="text-center">
+                      <Link
+                        to={`/teacher/profile/${teacher.id}`}
+                        className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded transition-colors inline-block"
+                      >
+                        Ver Perfil
+                      </Link>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -206,7 +302,7 @@ function SearchTutoring() {
         )}
 
         {/* Controles de paginación */}
-        {!isLoading && !error && teachersToDisplay.length > 0 && (
+        {!isLoading && !loadingSubjects && !error && teachersToDisplay.length > 0 && (
           <div className="flex justify-center space-x-2 mt-8">
             <button
               onClick={() => goToPage(currentPage - 1)}

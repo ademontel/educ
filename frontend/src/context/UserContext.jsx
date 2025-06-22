@@ -67,8 +67,7 @@ export const UserProvider = ({ children }) => {
     }
   };
   const registerUser = async (userData) => {
-    console.log("UserData que se envía:", userData); // debug
-
+    
     if (!userData.role) {
       return { error: "El campo 'role' es obligatorio" };
     }

@@ -40,10 +40,28 @@ class ProfessorAdmin(ModelView, model=Professor):
     icon = "fa-solid fa-chalkboard-teacher"
     category = "Gestión de Usuarios"
 
-    column_list = [Professor.id, Professor.ranking, "user", "subjects", "tutorships"]
-    column_details_list = [Professor.id, Professor.abstract, Professor.picture, Professor.ranking, "user", "subjects", "tutorships"]
+    column_list = [Professor.id, Professor.ranking, "user", "subjects"]
+    column_details_list = [Professor.id, Professor.abstract, Professor.picture, Professor.ranking, "user", "subjects"]
 
-    form_columns = [Professor.user, Professor.abstract, Professor.picture, Professor.ranking]
+    form_columns = [Professor.abstract, Professor.picture, Professor.ranking]
+    
+    # Sobrescribir el método para crear perfiles faltantes automáticamente
+    async def list(self, request):
+        # Crear perfiles de profesor faltantes antes de mostrar la lista
+        from .crud import create_missing_professor_profiles
+        from .database import SessionLocal
+        
+        db = SessionLocal()
+        try:
+            created_count = create_missing_professor_profiles(db)
+            if created_count > 0:
+                print(f"Se crearon {created_count} perfiles de profesor faltantes")
+        except Exception as e:
+            print(f"Error creando perfiles de profesor: {e}")
+        finally:
+            db.close()
+        
+        return await super().list(request)
 
 class SubjectAdmin(ModelView, model=Subject):
     name = "Materia"
@@ -51,10 +69,11 @@ class SubjectAdmin(ModelView, model=Subject):
     icon = "fa-solid fa-book"
     category = "Contenido Educativo"
 
-    column_list = [Subject.id, Subject.name, Subject.level, Subject.description]
-    column_filters = [Subject.level]
+    column_list = [Subject.id, Subject.name, Subject.level, Subject.credits, Subject.department, Subject.description]
+    column_filters = [Subject.level, Subject.department]
+    column_searchable_list = [Subject.name, Subject.description, Subject.department]
 
-    form_columns = [Subject.name, Subject.description, Subject.level]
+    form_columns = [Subject.name, Subject.description, Subject.level, Subject.credits, Subject.department]
     form_overrides = {
         Subject.level: SelectField,
     }
@@ -283,3 +302,21 @@ def setup_admin(app):
     admin.add_view(LiveSessionAdmin)
 
     return admin
+
+# Función para arreglar perfiles de profesor faltantes al iniciar
+def fix_missing_professor_profiles():
+    """Crear perfiles de profesor para usuarios teacher que no los tienen"""
+    from .database import SessionLocal
+    from .crud import create_missing_professor_profiles
+    
+    db = SessionLocal()
+    try:
+        created_count = create_missing_professor_profiles(db)
+        if created_count > 0:
+            print(f"✅ Se crearon {created_count} perfiles de profesor faltantes")
+        else:
+            print("✅ Todos los profesores ya tienen sus perfiles")
+    except Exception as e:
+        print(f"❌ Error creando perfiles de profesor: {e}")
+    finally:
+        db.close()

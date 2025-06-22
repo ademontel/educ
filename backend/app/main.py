@@ -24,8 +24,11 @@ logging.basicConfig(
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-from app.admin import setup_admin
+from app.admin import setup_admin, fix_missing_professor_profiles
 setup_admin(app)
+
+# Arreglar perfiles de profesor faltantes al iniciar
+fix_missing_professor_profiles()
 
 app.add_middleware(
     CORSMiddleware,
@@ -46,9 +49,23 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_users(db, skip=skip, limit=limit)
 
 @app.get("/teachers", response_model=list[schemas.UserOut])
-def get_teachers(skip: int = 0, limit: int = 100, current_user = Depends(get_current_user), db: Session = Depends(get_db)):
-    """Obtener lista de docentes disponibles"""
-    return crud.get_teachers(db, skip=skip, limit=limit)
+def get_teachers(
+    skip: int = 0, 
+    limit: int = 100, 
+    name: str = None,
+    subject: str = None,
+    level: str = None,
+    current_user = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+):
+    """Obtener lista de docentes disponibles con filtros opcionales"""
+    try:
+        # Usar función de búsqueda simplificada
+        return crud.search_teachers(db, skip=skip, limit=limit, name=name, subject=subject, level=level)
+    except Exception as e:
+        # Log del error y usar función básica como fallback
+        logging.error(f"Error en endpoint get_teachers: {str(e)}")
+        return crud.get_teachers(db, skip=skip, limit=limit)
 
 @app.get("/subjects", response_model=list[schemas.SubjectOut])
 def get_subjects(skip: int = 0, limit: int = 100, current_user = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -67,10 +84,9 @@ def read_user(user_id: int, db: Session = Depends(get_db), current_user = Depend
     # - Estudiantes pueden ver perfiles de profesores
     # - Admins pueden ver cualquier perfil
     
-    if (current_user.id == user_id or 
-        current_user.role == 'admin' or
-        (current_user.role in ['teacher', 'docente'] and db_user.role in ['student', 'alumno']) or
-        (current_user.role in ['student', 'alumno'] and db_user.role in ['teacher', 'docente'])):
+    if (current_user.id == user_id or        current_user.role == 'admin' or
+        (current_user.role == 'teacher' and db_user.role in ['student', 'alumno']) or
+        (current_user.role in ['student', 'alumno'] and db_user.role == 'teacher')):
         return db_user
     else:
         raise HTTPException(
@@ -226,9 +242,8 @@ async def upload_teacher_media(
     description: str = Form(""),
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
-    # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+):    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden subir archivos")
     
     if current_user.id != teacher_id:
@@ -281,7 +296,7 @@ def get_teacher_media_files(
     db: Session = Depends(get_db)
 ):
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden acceder a sus archivos")
     
     if current_user.id != teacher_id:
@@ -297,12 +312,12 @@ def download_teacher_media_file(
     db: Session = Depends(get_db)
 ):
     # Verificar permisos
-    if current_user.role not in ['teacher', 'docente', 'student', 'alumno']:
+    if current_user.role not in ['teacher', 'student', 'alumno']:
         raise HTTPException(status_code=403, detail="Sin permisos para descargar archivos")
     
     # Los docentes solo pueden acceder a sus propios archivos
     # Los estudiantes pueden acceder a archivos de sus docentes (esto se puede expandir más tarde)
-    if current_user.role in ['teacher', 'docente'] and current_user.id != teacher_id:
+    if current_user.role == 'teacher' and current_user.id != teacher_id:
         raise HTTPException(status_code=403, detail="Solo puedes acceder a tu propia biblioteca")
     
     media_file = crud.get_teacher_media_file(db, file_id, teacher_id)
@@ -327,7 +342,7 @@ def delete_teacher_media_file(
     db: Session = Depends(get_db)
 ):
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden eliminar archivos")
     
     if current_user.id != teacher_id:
@@ -356,7 +371,7 @@ def update_media_file_description(
     db: Session = Depends(get_db)
 ):
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden editar archivos")
     
     if current_user.id != teacher_id:
@@ -375,7 +390,7 @@ def get_teacher_tutorships(
     db: Session = Depends(get_db)
 ):
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden ver sus tutorías")
     
     if current_user.id != teacher_id:
@@ -392,7 +407,7 @@ def update_tutorship_status(
     db: Session = Depends(get_db)
 ):
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden actualizar el estado de las tutorías")
     
     if current_user.id != teacher_id:
@@ -430,7 +445,7 @@ def create_tutorship(
     
     # Verificar que el profesor existe
     professor = crud.get_user(db, tutorship.professor_id)
-    if not professor or professor.role not in ['teacher', 'docente']:
+    if not professor or professor.role != 'teacher':
         raise HTTPException(status_code=404, detail="Profesor no encontrado")
     
     # Verificar que la materia existe
@@ -451,7 +466,7 @@ def create_teacher_availability(
 ):
     """Crear disponibilidad horaria para un docente"""
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden configurar su disponibilidad")
     
     if current_user.id != teacher_id:
@@ -483,7 +498,7 @@ def update_teacher_availability(
 ):
     """Actualizar disponibilidad horaria de un docente"""
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden configurar su disponibilidad")
     
     if current_user.id != teacher_id:
@@ -509,7 +524,7 @@ def delete_teacher_availability(
 ):
     """Eliminar disponibilidad horaria de un docente"""
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden configurar su disponibilidad")
     
     if current_user.id != teacher_id:
@@ -559,7 +574,7 @@ def create_teacher_schedule(
 ):
     """Crear un evento en el calendario del docente (bloquear tiempo)"""
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden gestionar su calendario")
     
     if current_user.id != teacher_id:
@@ -599,7 +614,7 @@ def update_teacher_schedule(
 ):
     """Actualizar un evento en el calendario del docente"""
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden gestionar su calendario")
     
     if current_user.id != teacher_id:
@@ -629,7 +644,7 @@ def delete_teacher_schedule(
 ):
     """Eliminar un evento del calendario del docente"""
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden gestionar su calendario")
     
     if current_user.id != teacher_id:
@@ -657,12 +672,16 @@ def get_teacher_subjects(
     db: Session = Depends(get_db)
 ):
     """Obtener todas las materias asignadas a un docente"""
-    # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
-        raise HTTPException(status_code=403, detail="Solo los docentes pueden ver sus materias")
+    # Los usuarios autenticados pueden ver las materias de cualquier docente
+    # para facilitar la búsqueda de tutores
     
-    if current_user.id != teacher_id:
-        raise HTTPException(status_code=403, detail="Solo puedes ver tus propias materias")
+    # Verificar que el teacher_id corresponde a un docente válido
+    teacher = crud.get_user(db, teacher_id)
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Docente no encontrado")
+    
+    if teacher.role != 'teacher':
+        raise HTTPException(status_code=400, detail="El usuario especificado no es un docente")
     
     return crud.get_teacher_subjects(db, teacher_id)
 
@@ -675,7 +694,7 @@ def add_subject_to_teacher(
 ):
     """Agregar una materia a un docente"""
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden agregar materias")
     
     if current_user.id != teacher_id:
@@ -706,7 +725,7 @@ def remove_subject_from_teacher(
 ):
     """Eliminar una materia de un docente"""
     # Verificar que el usuario es un docente y es el mismo que el teacher_id
-    if current_user.role not in ['teacher', 'docente']:
+    if current_user.role != 'teacher':
         raise HTTPException(status_code=403, detail="Solo los docentes pueden eliminar materias")
     
     if current_user.id != teacher_id:
@@ -717,3 +736,8 @@ def remove_subject_from_teacher(
         raise HTTPException(status_code=404, detail="Materia no encontrada en tu perfil")
     
     return {"message": "Materia eliminada exitosamente"}
+
+@app.get("/subjects/levels")
+def get_subject_levels(current_user = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Obtener lista de niveles disponibles"""
+    return crud.get_subject_levels(db)

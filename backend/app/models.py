@@ -38,7 +38,10 @@ class Professor(Base):
     tutorships = relationship("Tutorship", back_populates="professor")
     
     def __str__(self):
-        return f"Prof. {self.user.name}" if self.user else f"Professor #{self.id}"
+        try:
+            return f"Prof. {self.user.name}" if self.user else f"Professor #{self.id}"
+        except:
+            return f"Professor #{self.id}"
 
 class SubjectLevel(str, enum.Enum):
     primaria = "primaria"
@@ -69,8 +72,16 @@ class ProfessorSubject(Base):
     subject = relationship("Subject")
     
     def __str__(self):
-        professor_name = self.professor.user.name if self.professor and self.professor.user else f"Professor #{self.professor_id}"
-        subject_name = self.subject.name if self.subject else f"Subject #{self.subject_id}"
+        try:
+            professor_name = self.professor.user.name if self.professor and self.professor.user else f"Professor #{self.professor_id}"
+        except:
+            professor_name = f"Professor #{self.professor_id}"
+        
+        try:
+            subject_name = self.subject.name if self.subject else f"Subject #{self.subject_id}"
+        except:
+            subject_name = f"Subject #{self.subject_id}"
+            
         return f"{professor_name} - {subject_name}"
 
 class TutorshipStatus(str, enum.Enum):
@@ -97,9 +108,21 @@ class Tutorship(Base):
     subject = relationship("Subject")
     
     def __str__(self):
-        student_name = self.student.name if self.student else f"Student #{self.student_id}"
-        professor_name = self.professor.user.name if self.professor and self.professor.user else f"Professor #{self.professor_id}"
-        subject_name = self.subject.name if self.subject else f"Subject #{self.subject_id}"
+        try:
+            student_name = self.student.name if self.student else f"Student #{self.student_id}"
+        except:
+            student_name = f"Student #{self.student_id}"
+        
+        try:
+            professor_name = self.professor.user.name if self.professor and self.professor.user else f"Professor #{self.professor_id}"
+        except:
+            professor_name = f"Professor #{self.professor_id}"
+        
+        try:
+            subject_name = self.subject.name if self.subject else f"Subject #{self.subject_id}"
+        except:
+            subject_name = f"Subject #{self.subject_id}"
+            
         return f"Tutoría #{self.id}: {student_name} - {professor_name} ({subject_name})"
 
 class Payment(Base):

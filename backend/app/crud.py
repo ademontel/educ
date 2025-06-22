@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import String
 from fastapi import HTTPException
 from . import models, schemas
 from .schemas import UserRole
@@ -41,7 +42,7 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.refresh(db_user)
     
     # Si el usuario es un teacher, crear automáticamente el perfil de profesor
-    if user.role in ['teacher', 'docente']:
+    if user.role == 'teacher':
         db_professor = models.Professor(
             id=db_user.id,
             abstract="",
@@ -56,28 +57,24 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 def create_missing_professor_profiles(db: Session):
     """Crear perfiles de profesor para usuarios con rol teacher que no los tienen"""
-    # Buscar usuarios con rol teacher que no tienen perfil de profesor
+    # Obtener usuarios con rol teacher que no tienen perfil de profesor
     teachers_without_profile = db.query(models.User).filter(
-        models.User.role.in_(['teacher', 'docente']),
-        ~models.User.id.in_(
-            db.query(models.Professor.id).subquery()
-        )
+        models.User.role == 'teacher',
+        ~db.query(models.Professor).filter(models.Professor.id == models.User.id).exists()
     ).all()
     
     created_count = 0
     for teacher in teachers_without_profile:
-        db_professor = models.Professor(
+        professor = models.Professor(
             id=teacher.id,
             abstract="",
             picture="",
             ranking=0.0
         )
-        db.add(db_professor)
+        db.add(professor)
         created_count += 1
     
-    if created_count > 0:
-        db.commit()
-    
+    db.commit()
     return created_count
 
 def update_user(db: Session, user_id: int, user: schemas.UserCreate):
@@ -184,17 +181,76 @@ def update_tutorship_status(db: Session, tutorship_id: int, status: str):
     return db_tutorship
 
 def get_teachers(db: Session, skip: int = 0, limit: int = 100):
-    """Obtener lista de usuarios con rol teacher/docente"""
+    """Obtener lista de usuarios con rol teacher"""
     return db.query(models.User).filter(
-        models.User.role.in_(['teacher', 'docente'])
+        models.User.role == 'teacher'
     ).offset(skip).limit(limit).all()
+
+def search_teachers(db: Session, skip: int = 0, limit: int = 100, name: str = None, subject: str = None, level: str = None):
+    """Buscar docentes con filtros opcionales"""
+    try:
+        logging.info(f"Búsqueda de profesores - name: '{name}', subject: '{subject}', level: '{level}'")
+        
+        # Empezar con consulta básica de usuarios con rol teacher
+        query = db.query(models.User).filter(
+            models.User.role == 'teacher'
+        )
+        
+        # Filtro por nombre
+        if name and name.strip():
+            query = query.filter(models.User.name.ilike(f"%{name}%"))
+            logging.info(f"Aplicado filtro por nombre: {name}")
+        
+        # Si se especifica filtro por materia o nivel, necesitamos hacer JOIN
+        if (subject and subject.strip()) or (level and level.strip()):
+            logging.info("Aplicando JOINs para filtros de materia/nivel")
+            # JOIN con Professor y ProfessorSubject y Subject
+            query = query.join(models.Professor, models.User.id == models.Professor.id)\
+                         .join(models.ProfessorSubject, models.Professor.id == models.ProfessorSubject.professor_id)\
+                         .join(models.Subject, models.ProfessorSubject.subject_id == models.Subject.id)
+            
+            # Filtro por materia (buscar en el nombre de la materia)
+            if subject and subject.strip():
+                query = query.filter(models.Subject.name.ilike(f"%{subject}%"))
+                logging.info(f"Aplicado filtro por materia: {subject}")
+            
+            # Filtro por nivel - buscar en el enum level como string
+            if level and level.strip():
+                level_lower = level.strip().lower()
+                logging.info(f"Aplicando filtro por nivel: '{level}' -> '{level_lower}'")
+                
+                # Primero, obtener los niveles disponibles para debug
+                available_levels = db.query(models.Subject.level).distinct().all()
+                logging.info(f"Niveles disponibles en DB: {[l[0] for l in available_levels]}")
+                
+                # Buscar por coincidencia exacta o parcial en el enum
+                query = query.filter(
+                    models.Subject.level.cast(String).ilike(f"%{level_lower}%")
+                )
+        
+        # Aplicar distinct para evitar duplicados cuando hay JOINs
+        if (subject and subject.strip()) or (level and level.strip()):
+            query = query.distinct()
+        
+        result = query.offset(skip).limit(limit).all()
+        logging.info(f"Búsqueda completada, encontrados {len(result)} profesores")
+        return result
+        
+    except Exception as e:
+        # Si hay error, hacer log detallado y usar la función simple
+        logging.error(f"Error en search_teachers: {str(e)}")
+        logging.error(f"Tipo de error: {type(e).__name__}")
+        logging.error(f"Filtros aplicados - name: {name}, subject: {subject}, level: {level}")
+        import traceback
+        logging.error(f"Traceback: {traceback.format_exc()}")
+        return get_teachers(db, skip, limit)
 
 def get_subjects(db: Session, skip: int = 0, limit: int = 100):
     """Obtener lista de materias disponibles"""
     return db.query(models.Subject).offset(skip).limit(limit).all()
 
 def get_subject_by_id(db: Session, subject_id: int):
-    """Obtener una materia por ID"""
+    """Obtener una materia por su ID"""
     return db.query(models.Subject).filter(models.Subject.id == subject_id).first()
 
 def create_subject(db: Session, subject_data: dict):
@@ -256,12 +312,6 @@ def create_teacher_availability(db: Session, availability: schemas.TeacherAvaila
     db.commit()
     db.refresh(db_availability)
     return db_availability
-    """Crear disponibilidad horaria para un profesor"""
-    db_availability = models.TeacherAvailability(**availability.dict())
-    db.add(db_availability)
-    db.commit()
-    db.refresh(db_availability)
-    return db_availability
 
 def get_teacher_availability(db: Session, teacher_id: int):
     """Obtener la disponibilidad horaria de un profesor"""
@@ -313,18 +363,6 @@ def update_teacher_availability(db: Session, availability_id: int, availability:
     
     db.commit()
     db.refresh(db_availability)
-    return db_availability
-    """Actualizar disponibilidad horaria"""
-    db_availability = db.query(models.TeacherAvailability).filter(
-        models.TeacherAvailability.id == availability_id
-    ).first()
-    
-    if db_availability:
-        for key, value in availability.dict().items():
-            setattr(db_availability, key, value)
-        db.commit()
-        db.refresh(db_availability)
-    
     return db_availability
 
 def delete_teacher_availability(db: Session, availability_id: int):
@@ -483,3 +521,13 @@ def remove_subject_from_teacher(db: Session, teacher_id: int, subject_id: int):
         return True
     
     return False
+
+def get_subject_levels(db: Session):
+    """Obtener lista de niveles disponibles en las materias"""
+    try:
+        # Obtener todos los niveles únicos de las materias
+        levels = db.query(models.Subject.level).distinct().all()
+        return [level[0] for level in levels if level[0]]
+    except Exception as e:
+        logging.error(f"Error obteniendo niveles: {str(e)}")
+        return ["primaria", "secundaria", "terciaria"]  # Valores por defecto
