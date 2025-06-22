@@ -64,6 +64,9 @@ class TutorshipBase(BaseModel):
     price_usdt: float
     platform_fee_pct: Optional[float] = 5.0
 
+class TutorshipCreate(TutorshipBase):
+    pass
+
 class TutorshipOut(TutorshipBase):
     id: int
     class Config:
@@ -138,3 +141,47 @@ class TutorshipStatusUpdate(BaseModel):
     
     class Config:
         from_attributes = True
+
+# Schemas para disponibilidad de profesores
+class TeacherAvailabilityBase(BaseModel):
+    day_of_week: int  # 0 = Lunes, 6 = Domingo
+    start_time: str   # "HH:MM"
+    end_time: str     # "HH:MM"
+    is_available: bool = True
+
+class TeacherAvailabilityCreate(TeacherAvailabilityBase):
+    teacher_id: int
+
+class TeacherAvailabilityOut(TeacherAvailabilityBase):
+    id: int
+    teacher_id: int
+    class Config:
+        from_attributes = True
+
+# Schemas para agenda de profesores
+class TeacherScheduleBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    start_datetime: datetime
+    end_datetime: datetime
+    is_blocked: bool = False
+
+class TeacherScheduleCreate(TeacherScheduleBase):
+    teacher_id: int
+
+class TeacherScheduleOut(TeacherScheduleBase):
+    id: int
+    teacher_id: int
+    class Config:
+        from_attributes = True
+
+# Schemas para slots disponibles
+class AvailableSlot(BaseModel):
+    start_datetime: datetime
+    end_datetime: datetime
+    duration_minutes: int
+
+class TeacherAvailabilityResponse(BaseModel):
+    teacher_id: int
+    teacher_name: str
+    available_slots: list[AvailableSlot]

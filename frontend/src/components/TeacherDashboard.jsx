@@ -71,17 +71,25 @@ function TeacherDashboard() {
             <span className="absolute bottom-3 left-3 text-sm opacity-80 z-10">
               Rendimiento y análisis
             </span>
-          </div>
-
-          {/* Configuración */}
-          <div className="relative bg-gradient-to-br from-indigo-900 via-indigo-700 to-indigo-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:contrast-125 transition min-h-[180px]">
+          </div>          {/* Disponibilidad */}
+          <Link to="/teacher/availability" className="relative bg-gradient-to-br from-indigo-900 via-indigo-700 to-indigo-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:brightness-125 hover:saturate-150 hover:shadow-indigo-500/50 hover:shadow-2xl transition-all duration-300 min-h-[180px]">
             <span className="absolute top-3 left-3 font-bold text-xl sm:text-2xl z-10">
-              Configuración
+              📅 Disponibilidad
             </span>
             <span className="absolute bottom-3 left-3 text-sm opacity-80 z-10">
-              Ajustes de cuenta
+              Configurar horarios disponibles
             </span>
-          </div>
+          </Link>
+
+          {/* Calendario */}
+          <Link to="/teacher/calendar" className="relative bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:brightness-125 hover:saturate-150 hover:shadow-blue-500/50 hover:shadow-2xl transition-all duration-300 min-h-[180px]">
+            <span className="absolute top-3 left-3 font-bold text-xl sm:text-2xl z-10">
+              🗓️ Calendario
+            </span>
+            <span className="absolute bottom-3 left-3 text-sm opacity-80 z-10">
+              Gestionar eventos y agenda
+            </span>
+          </Link>
 
         </div>
       </main>

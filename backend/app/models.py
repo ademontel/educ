@@ -1,5 +1,5 @@
 # MODELS.PY COMPLETO
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, Enum, DateTime, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, Enum, DateTime, Text, Boolean, Boolean
 from sqlalchemy.orm import relationship
 from .database import Base
 import enum
@@ -173,3 +173,28 @@ class LiveSession(Base):
     
     def __str__(self):
         return f"Live Session #{self.id} (Tutorship #{self.tutorship_id})"
+
+class TeacherAvailability(Base):
+    __tablename__ = "teacher_availability"
+
+    id = Column(Integer, primary_key=True)
+    teacher_id = Column(Integer, ForeignKey("users.id"))
+    day_of_week = Column(Integer)  # 0 = Lunes, 6 = Domingo
+    start_time = Column(String)  # "HH:MM"
+    end_time = Column(String)    # "HH:MM"
+    is_available = Column(Boolean, default=True)
+
+    teacher = relationship("User")
+
+class TeacherSchedule(Base):
+    __tablename__ = "teacher_schedule"
+
+    id = Column(Integer, primary_key=True)
+    teacher_id = Column(Integer, ForeignKey("users.id"))
+    title = Column(String)
+    description = Column(Text)
+    start_datetime = Column(DateTime)
+    end_datetime = Column(DateTime)
+    is_blocked = Column(Boolean, default=False)  # True para eventos que bloquean tiempo
+
+    teacher = relationship("User")

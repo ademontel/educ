@@ -45,6 +45,16 @@ def check_email(email: str, db: Session = Depends(get_db)):
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_users(db, skip=skip, limit=limit)
 
+@app.get("/teachers", response_model=list[schemas.UserOut])
+def get_teachers(skip: int = 0, limit: int = 100, current_user = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Obtener lista de docentes disponibles"""
+    return crud.get_teachers(db, skip=skip, limit=limit)
+
+@app.get("/subjects", response_model=list[schemas.SubjectOut])
+def get_subjects(skip: int = 0, limit: int = 100, current_user = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Obtener lista de materias disponibles"""
+    return crud.get_subjects(db, skip=skip, limit=limit)
+
 @app.get("/users/{user_id}", response_model=schemas.UserOut)
 def read_user(user_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     db_user = crud.get_user(db, user_id)
@@ -402,3 +412,239 @@ def update_tutorship_status(
         raise HTTPException(status_code=400, detail="No se pudo actualizar el estado de la tutoría")
     
     return updated_tutorship
+
+@app.post("/tutorships", response_model=schemas.TutorshipDetailOut)
+def create_tutorship(
+    tutorship: schemas.TutorshipCreate,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Crear una nueva tutoría"""
+    # Verificar que el usuario autenticado es un estudiante
+    if current_user.role not in ['student', 'alumno']:
+        raise HTTPException(status_code=403, detail="Solo los estudiantes pueden crear tutorías")
+    
+    # Verificar que el student_id en los datos coincide con el usuario actual
+    if tutorship.student_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Solo puedes crear tutorías para ti mismo")
+    
+    # Verificar que el profesor existe
+    professor = crud.get_user(db, tutorship.professor_id)
+    if not professor or professor.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=404, detail="Profesor no encontrado")
+    
+    # Verificar que la materia existe
+    subject = db.query(models.Subject).filter(models.Subject.id == tutorship.subject_id).first()
+    if not subject:
+        raise HTTPException(status_code=404, detail="Materia no encontrada")
+    
+    return crud.create_tutorship(db, tutorship)
+
+# Endpoints para el sistema de agenda de docentes
+
+@app.post("/teachers/{teacher_id}/availability", response_model=schemas.TeacherAvailabilityOut)
+def create_teacher_availability(
+    teacher_id: int,
+    availability: schemas.TeacherAvailabilityBase,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Crear disponibilidad horaria para un docente"""
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden configurar su disponibilidad")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes configurar tu propia disponibilidad")
+    
+    availability_data = schemas.TeacherAvailabilityCreate(
+        teacher_id=teacher_id,
+        **availability.dict()
+    )
+    
+    return crud.create_teacher_availability(db, availability_data)
+
+@app.get("/teachers/{teacher_id}/availability", response_model=list[schemas.TeacherAvailabilityOut])
+def get_teacher_availability(
+    teacher_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obtener la disponibilidad horaria de un docente"""
+    return crud.get_teacher_availability(db, teacher_id)
+
+@app.put("/teachers/{teacher_id}/availability/{availability_id}", response_model=schemas.TeacherAvailabilityOut)
+def update_teacher_availability(
+    teacher_id: int,
+    availability_id: int,
+    availability: schemas.TeacherAvailabilityBase,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Actualizar disponibilidad horaria de un docente"""
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden configurar su disponibilidad")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes configurar tu propia disponibilidad")
+    
+    availability_data = schemas.TeacherAvailabilityCreate(
+        teacher_id=teacher_id,
+        **availability.dict()
+    )
+    
+    updated_availability = crud.update_teacher_availability(db, availability_id, availability_data)
+    if not updated_availability:
+        raise HTTPException(status_code=404, detail="Disponibilidad no encontrada")
+    
+    return updated_availability
+
+@app.delete("/teachers/{teacher_id}/availability/{availability_id}")
+def delete_teacher_availability(
+    teacher_id: int,
+    availability_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Eliminar disponibilidad horaria de un docente"""
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden configurar su disponibilidad")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes configurar tu propia disponibilidad")
+    
+    deleted_availability = crud.delete_teacher_availability(db, availability_id)
+    if not deleted_availability:
+        raise HTTPException(status_code=404, detail="Disponibilidad no encontrada")
+    
+    return {"message": "Disponibilidad eliminada correctamente"}
+
+@app.get("/teachers/{teacher_id}/available-slots", response_model=schemas.TeacherAvailabilityResponse)
+def get_teacher_available_slots(
+    teacher_id: int,
+    start_date: str,  # Formato: YYYY-MM-DD
+    end_date: str,    # Formato: YYYY-MM-DD
+    duration: int = 60,  # Duración en minutos
+    db: Session = Depends(get_db)
+):
+    """Obtener slots disponibles de un docente en un rango de fechas"""
+    try:
+        start_datetime = datetime.strptime(start_date, "%Y-%m-%d")
+        end_datetime = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Formato de fecha inválido. Use YYYY-MM-DD")
+    
+    # Obtener información del docente
+    teacher = crud.get_user(db, teacher_id)
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Docente no encontrado")
+    
+    # Obtener slots disponibles
+    available_slots = crud.get_teacher_available_slots(db, teacher_id, start_datetime, end_datetime, duration)
+    
+    return schemas.TeacherAvailabilityResponse(
+        teacher_id=teacher_id,
+        teacher_name=teacher.name,
+        available_slots=[schemas.AvailableSlot(**slot) for slot in available_slots]
+    )
+
+@app.post("/teachers/{teacher_id}/schedule", response_model=schemas.TeacherScheduleOut)
+def create_teacher_schedule(
+    teacher_id: int,
+    schedule: schemas.TeacherScheduleBase,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Crear un evento en el calendario del docente (bloquear tiempo)"""
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden gestionar su calendario")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes gestionar tu propio calendario")
+    
+    schedule_data = schemas.TeacherScheduleCreate(
+        teacher_id=teacher_id,
+        **schedule.dict()
+    )
+    
+    return crud.create_teacher_schedule(db, schedule_data)
+
+@app.get("/teachers/{teacher_id}/schedule", response_model=list[schemas.TeacherScheduleOut])
+def get_teacher_schedule(
+    teacher_id: int,
+    start_date: str,  # Formato: YYYY-MM-DD
+    end_date: str,    # Formato: YYYY-MM-DD
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obtener el calendario de un docente en un rango de fechas"""
+    try:
+        start_datetime = datetime.strptime(start_date, "%Y-%m-%d")
+        end_datetime = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Formato de fecha inválido. Use YYYY-MM-DD")
+    
+    return crud.get_teacher_schedule(db, teacher_id, start_datetime, end_datetime)
+
+@app.put("/teachers/{teacher_id}/schedule/{schedule_id}", response_model=schemas.TeacherScheduleOut)
+def update_teacher_schedule(
+    teacher_id: int,
+    schedule_id: int,
+    schedule: schemas.TeacherScheduleBase,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Actualizar un evento en el calendario del docente"""
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden gestionar su calendario")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes gestionar tu propio calendario")
+    
+    # Verificar que el evento existe y pertenece al docente
+    existing_schedule = crud.get_teacher_schedule_by_id(db, schedule_id)
+    if not existing_schedule:
+        raise HTTPException(status_code=404, detail="Evento no encontrado")
+    
+    if existing_schedule.teacher_id != teacher_id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para editar este evento")
+    
+    schedule_data = schemas.TeacherScheduleCreate(
+        teacher_id=teacher_id,
+        **schedule.dict()
+    )
+    
+    return crud.update_teacher_schedule(db, schedule_id, schedule_data)
+
+@app.delete("/teachers/{teacher_id}/schedule/{schedule_id}")
+def delete_teacher_schedule(
+    teacher_id: int,
+    schedule_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Eliminar un evento del calendario del docente"""
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden gestionar su calendario")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes gestionar tu propio calendario")
+    
+    # Verificar que el evento existe y pertenece al docente
+    existing_schedule = crud.get_teacher_schedule_by_id(db, schedule_id)
+    if not existing_schedule:
+        raise HTTPException(status_code=404, detail="Evento no encontrado")
+    
+    if existing_schedule.teacher_id != teacher_id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para eliminar este evento")
+    
+    success = crud.delete_teacher_schedule(db, schedule_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Error al eliminar el evento")
+    
+    return {"message": "Evento eliminado exitosamente"}
