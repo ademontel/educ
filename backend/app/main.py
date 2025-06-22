@@ -648,3 +648,72 @@ def delete_teacher_schedule(
         raise HTTPException(status_code=400, detail="Error al eliminar el evento")
     
     return {"message": "Evento eliminado exitosamente"}
+
+# Endpoints para materias del docente
+@app.get("/teachers/{teacher_id}/subjects", response_model=list[schemas.TeacherSubjectOut])
+def get_teacher_subjects(
+    teacher_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obtener todas las materias asignadas a un docente"""
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden ver sus materias")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes ver tus propias materias")
+    
+    return crud.get_teacher_subjects(db, teacher_id)
+
+@app.post("/teachers/{teacher_id}/subjects", response_model=schemas.TeacherSubjectOut)
+def add_subject_to_teacher(
+    teacher_id: int,
+    subject_data: schemas.TeacherSubjectCreate,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Agregar una materia a un docente"""
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden agregar materias")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes agregar materias a tu propio perfil")
+    
+    # Verificar que la materia existe
+    subject = crud.get_subject_by_id(db, subject_data.subject_id)
+    if not subject:
+        raise HTTPException(status_code=404, detail="Materia no encontrada")
+    
+    # Verificar que no existe ya la relación
+    existing_subjects = crud.get_teacher_subjects(db, teacher_id)
+    if any(ts.subject_id == subject_data.subject_id for ts in existing_subjects):
+        raise HTTPException(status_code=400, detail="Ya tienes esta materia asignada")
+    
+    teacher_subject = crud.add_subject_to_teacher(db, teacher_id, subject_data.subject_id)
+    if not teacher_subject:
+        raise HTTPException(status_code=400, detail="Error al agregar la materia")
+    
+    return teacher_subject
+
+@app.delete("/teachers/{teacher_id}/subjects/{subject_id}")
+def remove_subject_from_teacher(
+    teacher_id: int,
+    subject_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Eliminar una materia de un docente"""
+    # Verificar que el usuario es un docente y es el mismo que el teacher_id
+    if current_user.role not in ['teacher', 'docente']:
+        raise HTTPException(status_code=403, detail="Solo los docentes pueden eliminar materias")
+    
+    if current_user.id != teacher_id:
+        raise HTTPException(status_code=403, detail="Solo puedes eliminar materias de tu propio perfil")
+    
+    success = crud.remove_subject_from_teacher(db, teacher_id, subject_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Materia no encontrada en tu perfil")
+    
+    return {"message": "Materia eliminada exitosamente"}

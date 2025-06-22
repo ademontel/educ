@@ -79,15 +79,23 @@ function TeacherDashboard() {
             <span className="absolute bottom-3 left-3 text-sm opacity-80 z-10">
               Configurar horarios disponibles
             </span>
-          </Link>
-
-          {/* Calendario */}
+          </Link>          {/* Calendario */}
           <Link to="/teacher/calendar" className="relative bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:brightness-125 hover:saturate-150 hover:shadow-blue-500/50 hover:shadow-2xl transition-all duration-300 min-h-[180px]">
             <span className="absolute top-3 left-3 font-bold text-xl sm:text-2xl z-10">
               🗓️ Calendario
             </span>
             <span className="absolute bottom-3 left-3 text-sm opacity-80 z-10">
               Gestionar eventos y agenda
+            </span>
+          </Link>
+
+          {/* Materias */}
+          <Link to="/teacher/subjects" className="relative bg-gradient-to-br from-pink-900 via-pink-700 to-pink-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:brightness-125 hover:saturate-150 hover:shadow-pink-500/50 hover:shadow-2xl transition-all duration-300 min-h-[180px]">
+            <span className="absolute top-3 left-3 font-bold text-xl sm:text-2xl z-10">
+              📚 Mis Materias
+            </span>
+            <span className="absolute bottom-3 left-3 text-sm opacity-80 z-10">
+              Gestionar materias que enseño
             </span>
           </Link>
 

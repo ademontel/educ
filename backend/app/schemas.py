@@ -15,7 +15,7 @@ class UserBase(BaseModel):
     email: EmailStr
 
 class UserCreate(UserBase):
-    password: constr(min_length=6) = Field(..., description="Password must be at least 6 characters long")
+    password: str = Field(..., min_length=6, description="Password must be at least 6 characters long")
     role: UserRole
 
 class UserLogin(BaseModel):
@@ -48,6 +48,8 @@ class SubjectBase(BaseModel):
     name: str
     description: Optional[str]
     level: SubjectLevel  # ← NUEVO
+    credits: Optional[int] = 3
+    department: Optional[str] = "Sin asignar"
 
 class SubjectOut(SubjectBase):
     id: int
@@ -185,3 +187,16 @@ class TeacherAvailabilityResponse(BaseModel):
     teacher_id: int
     teacher_name: str
     available_slots: list[AvailableSlot]
+
+# Schemas para materias del docente
+class TeacherSubjectOut(BaseModel):
+    id: int
+    professor_id: int
+    subject_id: int
+    subject: SubjectOut
+    
+    class Config:
+        from_attributes = True
+
+class TeacherSubjectCreate(BaseModel):
+    subject_id: int

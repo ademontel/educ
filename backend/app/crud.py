@@ -193,6 +193,10 @@ def get_subjects(db: Session, skip: int = 0, limit: int = 100):
     """Obtener lista de materias disponibles"""
     return db.query(models.Subject).offset(skip).limit(limit).all()
 
+def get_subject_by_id(db: Session, subject_id: int):
+    """Obtener una materia por ID"""
+    return db.query(models.Subject).filter(models.Subject.id == subject_id).first()
+
 def create_subject(db: Session, subject_data: dict):
     """Crear una nueva materia"""
     db_subject = models.Subject(**subject_data)
@@ -353,7 +357,7 @@ def get_teacher_schedule(db: Session, teacher_id: int, start_date: datetime, end
     ).all()
 
 def get_teacher_schedule_by_id(db: Session, schedule_id: int):
-    """Obtener un evento específico del calendario por ID"""
+    """Obtener un evento específico del calendario del profesor por ID"""
     return db.query(models.TeacherSchedule).filter(
         models.TeacherSchedule.id == schedule_id
     ).first()
@@ -412,3 +416,70 @@ def get_teacher_available_slots(db: Session, teacher_id: int, start_date: dateti
         current_date += timedelta(days=1)
     
     return available_slots
+
+# CRUD para materias del docente
+def get_teacher_subjects(db: Session, teacher_id: int):
+    """Obtener todas las materias asignadas a un docente"""
+    # Verificar que el profesor existe en la tabla professors
+    professor = db.query(models.Professor).filter(models.Professor.id == teacher_id).first()
+    if not professor:
+        # Si no existe en professors, crearlo automáticamente
+        new_professor = models.Professor(id=teacher_id)
+        db.add(new_professor)
+        db.commit()
+    
+    return db.query(models.ProfessorSubject).options(
+        joinedload(models.ProfessorSubject.subject)
+    ).filter(models.ProfessorSubject.professor_id == teacher_id).all()
+
+def add_subject_to_teacher(db: Session, teacher_id: int, subject_id: int):
+    """Agregar una materia a un docente"""
+    # Verificar que el profesor existe en la tabla professors
+    professor = db.query(models.Professor).filter(models.Professor.id == teacher_id).first()
+    if not professor:
+        # Si no existe en professors, crearlo automáticamente
+        new_professor = models.Professor(id=teacher_id)
+        db.add(new_professor)
+        db.commit()
+    
+    # Verificar que la materia existe
+    subject = db.query(models.Subject).filter(models.Subject.id == subject_id).first()
+    if not subject:
+        return None
+    
+    # Verificar que la relación no existe ya
+    existing = db.query(models.ProfessorSubject).filter(
+        models.ProfessorSubject.professor_id == teacher_id,
+        models.ProfessorSubject.subject_id == subject_id
+    ).first()
+    
+    if existing:
+        return existing
+    
+    # Crear nueva relación
+    db_teacher_subject = models.ProfessorSubject(
+        professor_id=teacher_id,
+        subject_id=subject_id
+    )
+    db.add(db_teacher_subject)
+    db.commit()
+    db.refresh(db_teacher_subject)
+    
+    # Retornar con datos relacionados
+    return db.query(models.ProfessorSubject).options(
+        joinedload(models.ProfessorSubject.subject)
+    ).filter(models.ProfessorSubject.id == db_teacher_subject.id).first()
+
+def remove_subject_from_teacher(db: Session, teacher_id: int, subject_id: int):
+    """Eliminar una materia de un docente"""
+    teacher_subject = db.query(models.ProfessorSubject).filter(
+        models.ProfessorSubject.professor_id == teacher_id,
+        models.ProfessorSubject.subject_id == subject_id
+    ).first()
+    
+    if teacher_subject:
+        db.delete(teacher_subject)
+        db.commit()
+        return True
+    
+    return False

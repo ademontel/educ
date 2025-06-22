@@ -14,6 +14,7 @@ import TeacherMediaLibrary from "./components/TeacherMediaLibrary";
 import TeacherTutorships from "./components/TeacherTutorships";
 import TeacherAvailability from "./components/TeacherAvailability";
 import TeacherCalendar from "./components/TeacherCalendar";
+import TeacherSubjects from "./components/TeacherSubjects";
 import Register from "./components/Register";
 import NotFound from "./components/NotFound";
 import PrivateLayout from "./components/PrivateLayout.jsx";
@@ -187,14 +188,23 @@ function App() {
             </PrivateLayout>
           </RoleRoute>
         }
-      />
-
-      <Route
+      />      <Route
         path="/teacher/calendar"
         element={
           <RoleRoute allowedRoles={['teacher']}>
             <PrivateLayout>
               <TeacherCalendar />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/teacher/subjects"
+        element={
+          <RoleRoute allowedRoles={['teacher']}>
+            <PrivateLayout>
+              <TeacherSubjects />
             </PrivateLayout>
           </RoleRoute>
         }

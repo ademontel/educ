@@ -75,7 +75,7 @@ const UserNavigation = () => {
               to="/teacher/tutoring"
               className={`flex items-center px-4 py-2 rounded-lg text-gray-200 hover:bg-blue-600 hover:text-white transition-colors whitespace-nowrap ${isActive('/teacher/tutoring')}`}
             >
-              📚 Mis Tutorías
+              🎓 Mis Tutorías
             </Link>
             <Link
               to="/teacher/availability"
@@ -87,7 +87,13 @@ const UserNavigation = () => {
               to="/teacher/calendar"
               className={`flex items-center px-4 py-2 rounded-lg text-gray-200 hover:bg-blue-600 hover:text-white transition-colors whitespace-nowrap ${isActive('/teacher/calendar')}`}
             >
-              📅 Calendario
+              �️ Calendario
+            </Link>
+            <Link
+              to="/teacher/subjects"
+              className={`flex items-center px-4 py-2 rounded-lg text-gray-200 hover:bg-blue-600 hover:text-white transition-colors whitespace-nowrap ${isActive('/teacher/subjects')}`}
+            >
+              📚 Materias
             </Link>
             <Link
               to="/teacher/media"

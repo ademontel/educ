@@ -52,6 +52,8 @@ class Subject(Base):
     name = Column(String, unique=True)
     description = Column(Text)
     level = Column(Enum(SubjectLevel), nullable=False)
+    credits = Column(Integer, default=3)
+    department = Column(String, default="Sin asignar")
     
     def __str__(self):
         return f"{self.name} ({self.level})"
