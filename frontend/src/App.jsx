@@ -5,6 +5,7 @@ import StudentDashboard from "./components/StudentDashboard";
 import SearchTutoring from "./components/SearchTutoring";
 import StudentHistory from "./components/StudentHistory";
 import StudentActiveTutoringList from "./components/StudentActiveTutoringList";
+import StudentCalendar from "./components/StudentCalendar";
 import TutoringDetails from "./components/TutoringDetails";
 import TeacherView from "./components/TeacherView";
 import TeacherDashboard from "./components/TeacherDashboard";
@@ -102,13 +103,23 @@ function App() {
           </RoleRoute>
         }
       />
-      
-      <Route
+        <Route
         path="/student/tutoring-details"
         element={
           <RoleRoute allowedRoles={['student']}>
             <PrivateLayout>
               <TutoringDetails />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/student/calendar"
+        element={
+          <RoleRoute allowedRoles={['student']}>
+            <PrivateLayout>
+              <StudentCalendar />
             </PrivateLayout>
           </RoleRoute>
         }

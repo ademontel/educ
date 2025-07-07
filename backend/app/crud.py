@@ -161,6 +161,15 @@ def get_teacher_tutorships(db: Session, teacher_id: int):
         models.Tutorship.professor_id == teacher_id
     ).order_by(models.Tutorship.start_time.desc()).all()
 
+def get_student_tutorships(db: Session, student_id: int):
+    """Obtener todas las tutorías de un estudiante específico con información relacionada"""
+    return db.query(models.Tutorship).options(
+        joinedload(models.Tutorship.professor).joinedload(models.Professor.user),
+        joinedload(models.Tutorship.subject)
+    ).filter(
+        models.Tutorship.student_id == student_id
+    ).order_by(models.Tutorship.start_time.desc()).all()
+
 def get_tutorship_by_id(db: Session, tutorship_id: int):
     """Obtener una tutoría específica por ID"""
     return db.query(models.Tutorship).filter(models.Tutorship.id == tutorship_id).first()
@@ -213,27 +222,44 @@ def search_teachers(db: Session, skip: int = 0, limit: int = 100, name: str = No
             if subject and subject.strip():
                 query = query.filter(models.Subject.name.ilike(f"%{subject}%"))
                 logging.info(f"Aplicado filtro por materia: {subject}")
-            
-            # Filtro por nivel - buscar en el enum level como string
+              # Filtro por nivel - mapear valores del frontend a los enum de la DB
             if level and level.strip():
-                level_lower = level.strip().lower()
-                logging.info(f"Aplicando filtro por nivel: '{level}' -> '{level_lower}'")
+                level_input = level.strip().lower()
+                logging.info(f"Aplicando filtro por nivel: '{level}' -> '{level_input}'")
+                  # Mapear valores del frontend a los valores del enum
+                level_mapping = {
+                    'primario': 'primaria',
+                    'primaria': 'primaria',
+                    'secundario': 'secundaria', 
+                    'secundario': 'secundaria',
+                    'terciario': 'terciaria',
+                    'terciaria': 'terciaria',
+                    'universitario': 'terciaria',
+                    'universidad': 'terciaria'
+                }
+                
+                mapped_level = level_mapping.get(level_input, level_input)
+                logging.info(f"Nivel mapeado: '{level_input}' -> '{mapped_level}'")
                 
                 # Primero, obtener los niveles disponibles para debug
                 available_levels = db.query(models.Subject.level).distinct().all()
                 logging.info(f"Niveles disponibles en DB: {[l[0] for l in available_levels]}")
-                
-                # Buscar por coincidencia exacta o parcial en el enum
+                  # Buscar por coincidencia exacta en el enum
+                logging.info(f"Aplicando filtro: Subject.level == '{mapped_level}'")
                 query = query.filter(
-                    models.Subject.level.cast(String).ilike(f"%{level_lower}%")
+                    models.Subject.level.cast(String) == mapped_level
                 )
-        
-        # Aplicar distinct para evitar duplicados cuando hay JOINs
+                logging.info(f"Filtro aplicado exitosamente")
+          # Aplicar distinct para evitar duplicados cuando hay JOINs
         if (subject and subject.strip()) or (level and level.strip()):
             query = query.distinct()
+            
+        # Debug: contar resultados antes de paginación
+        total_count = query.count()
+        logging.info(f"Total de profesores encontrados (antes de paginación): {total_count}")
         
         result = query.offset(skip).limit(limit).all()
-        logging.info(f"Búsqueda completada, encontrados {len(result)} profesores")
+        logging.info(f"Búsqueda completada, devueltos {len(result)} profesores (después de paginación)")
         return result
         
     except Exception as e:
@@ -527,7 +553,21 @@ def get_subject_levels(db: Session):
     try:
         # Obtener todos los niveles únicos de las materias
         levels = db.query(models.Subject.level).distinct().all()
-        return [level[0] for level in levels if level[0]]
+        db_levels = [level[0] for level in levels if level[0]]
+        
+        # Mapear a valores más friendly para el frontend
+        frontend_levels = []
+        for level in db_levels:
+            if level == 'primaria':
+                frontend_levels.append('Primario')
+            elif level == 'secundaria':
+                frontend_levels.append('Secundario')
+            elif level == 'terciaria':
+                frontend_levels.append('Terciario')
+            else:
+                frontend_levels.append(level.capitalize())
+        
+        return frontend_levels
     except Exception as e:
         logging.error(f"Error obteniendo niveles: {str(e)}")
-        return ["primaria", "secundaria", "terciaria"]  # Valores por defecto
+        return ["Primario", "Secundario", "Terciario"]  # Valores por defecto

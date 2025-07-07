@@ -64,6 +64,16 @@ function StudentDashboard() {
             </span>
           </div>
 
+          {/* Calendario */}
+          <Link to="/student/calendar" className="relative bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:brightness-125 hover:saturate-150 hover:shadow-blue-500/50 hover:shadow-2xl transition-all duration-300 min-h-[180px]">
+            <span className="absolute top-3 left-3 font-bold text-xl sm:text-2xl z-10">
+              🗓️ Calendario
+            </span>
+            <span className="absolute bottom-3 left-3 text-sm opacity-80 z-10">
+              Ver tutorías programadas
+            </span>
+          </Link>
+
           {/* Configuración */}
           <div className="relative bg-gradient-to-br from-indigo-900 via-indigo-700 to-indigo-500 rounded-2xl shadow-lg p-6 flex flex-col items-start hover:scale-105 hover:contrast-125 transition min-h-[180px]">
             <span className="absolute top-3 left-3 font-bold text-xl sm:text-2xl z-10">

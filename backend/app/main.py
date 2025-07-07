@@ -741,3 +741,29 @@ def remove_subject_from_teacher(
 def get_subject_levels(current_user = Depends(get_current_user), db: Session = Depends(get_db)):
     """Obtener lista de niveles disponibles"""
     return crud.get_subject_levels(db)
+
+@app.get("/students/{student_id}/tutorships", response_model=list[schemas.TutorshipDetailOut])
+def get_student_tutorships(
+    student_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obtener todas las tutorías de un estudiante específico"""
+    # Verificar que el usuario es un estudiante y es el mismo que el student_id
+    if current_user.role not in ['student', 'alumno']:
+        raise HTTPException(status_code=403, detail="Solo los estudiantes pueden ver sus tutorías")
+    
+    if current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Solo puedes ver tus propias tutorías")
+    
+    # Usar la consulta directamente en lugar de llamar a la función de crud que no se encuentra
+    from sqlalchemy.orm import joinedload
+    
+    tutorships = db.query(models.Tutorship).options(
+        joinedload(models.Tutorship.professor).joinedload(models.Professor.user),
+        joinedload(models.Tutorship.subject)
+    ).filter(
+        models.Tutorship.student_id == student_id
+    ).order_by(models.Tutorship.start_time.desc()).all()
+    
+    return tutorships
