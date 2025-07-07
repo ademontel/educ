@@ -20,13 +20,25 @@ const userReducer = (state, action) => {
         ...state,
         users: state.users.filter(user => user.id !== action.payload)
       };
+    case 'FETCH_TUTORSHIPS':
+      return { ...state, tutorships: action.payload };
+    case 'UPDATE_TUTORSHIP_STATUS':
+      return {
+        ...state,
+        tutorships: state.tutorships.map(tutorship =>
+          tutorship.id === action.payload.id ? action.payload : tutorship
+        )
+      };
     default:
       return state;
   }
 };
 
 export const UserProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(userReducer, { users: [] });
+  const [state, dispatch] = useReducer(userReducer, { 
+    users: [], 
+    tutorships: [] 
+  });
 
   const fetchUsers = (users) => {
     dispatch({ type: 'FETCH_USERS', payload: users });
@@ -54,10 +66,8 @@ export const UserProvider = ({ children }) => {
       throw error;
     }
   };
-
   const registerUser = async (userData) => {
-    console.log("UserData que se envía:", userData); // debug
-
+    
     if (!userData.role) {
       return { error: "El campo 'role' es obligatorio" };
     }
@@ -89,16 +99,91 @@ export const UserProvider = ({ children }) => {
       return { error: 'Error al registrar usuario' };
     }
   };
+  const getUserProfile = async (userId) => {
+    try {
+      const response = await fetch(`http://localhost:8000/users/${userId}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('No tienes permisos para ver este perfil');
+        } else if (response.status === 404) {
+          throw new Error('Usuario no encontrado');
+        } else {
+          throw new Error('Error al cargar el perfil');
+        }
+      }
+
+      const userData = await response.json();
+      return { user: userData };
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return { error: error.message };
+    }
+  };
+  // Funciones de tutorías
+  const fetchTutorships = async (teacherId) => {
+    try {
+      const response = await fetch(`http://localhost:8000/teachers/${teacherId}/tutorships`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      dispatch({ type: 'FETCH_TUTORSHIPS', payload: data });
+      return { tutorships: data };
+    } catch (error) {
+      console.error('Error fetching tutorships:', error);
+      return { error: error.message };
+    }
+  };
+
+  const updateTutorshipStatus = async (teacherId, tutorshipId, newStatus) => {
+    try {
+      const response = await fetch(`http://localhost:8000/teachers/${teacherId}/tutorships/${tutorshipId}/status`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const updatedTutorship = await response.json();
+      dispatch({ type: 'UPDATE_TUTORSHIP_STATUS', payload: updatedTutorship });
+      return { tutorship: updatedTutorship };
+    } catch (error) {
+      console.error('Error updating tutorship status:', error);
+      return { error: error.message };
+    }
+  };
   return (
     <UserContext.Provider value={{
       users: state.users,
+      tutorships: state.tutorships,
       fetchUsers,
       addUser,
       checkEmailExists,
       registerUser,
       updateUser,
-      deleteUser
+      deleteUser,
+      getUserProfile,
+      fetchTutorships,
+      updateTutorshipStatus
     }}>
       {children}
     </UserContext.Provider>

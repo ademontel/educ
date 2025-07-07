@@ -35,8 +35,6 @@ function Register() {
       return;
     }
 
-    console.log("Form enviado:", formData); // Debug
-
     try {
       const { error, user } = await registerUser({
         name: formData.name,

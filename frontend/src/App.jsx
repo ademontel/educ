@@ -1,110 +1,260 @@
 import React from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
 import StudentDashboard from "./components/StudentDashboard";
 import SearchTutoring from "./components/SearchTutoring";
-import TeacherView from "./components/TeacherView";
 import StudentHistory from "./components/StudentHistory";
 import StudentActiveTutoringList from "./components/StudentActiveTutoringList";
 import TutoringDetails from "./components/TutoringDetails";
+import TeacherView from "./components/TeacherView";
+import TeacherDashboard from "./components/TeacherDashboard";
+import TeacherProfile from "./components/TeacherProfile";
+import StudentProfile from "./components/StudentProfile";
+import TeacherMediaLibrary from "./components/TeacherMediaLibrary";
+import TeacherTutorships from "./components/TeacherTutorships";
+import TeacherAvailability from "./components/TeacherAvailability";
+import TeacherCalendar from "./components/TeacherCalendar";
+import TeacherSubjects from "./components/TeacherSubjects";
 import Register from "./components/Register";
 import NotFound from "./components/NotFound";
 import PrivateLayout from "./components/PrivateLayout.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import RoleRoute from "./components/RoleRoute.jsx";
 
 function App() {
   return (
     <Routes>
       {/* Rutas públicas */}
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-
-      {/* Redirección raíz */}
+      <Route path="/register" element={<Register />} />      {/* Redirección raíz basada en rol */}
       <Route
         path="/"
-        element={
-          <ProtectedRoute>
-            <Navigate to="/dashboard" replace />
-          </ProtectedRoute>
-        }
+        element={<RoleRoute redirectOnly={true} />}
       />
 
-      {/* Rutas protegidas con Navbar */}
+      {/* Redirección de dashboard basada en rol */}
       <Route
         path="/dashboard"
+        element={<RoleRoute redirectOnly={true} />}
+      />      {/* Rutas específicas para estudiantes */}
+      <Route
+        path="/student"
         element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['student']}>
             <PrivateLayout>
               <StudentDashboard />
             </PrivateLayout>
-          </ProtectedRoute>
+          </RoleRoute>
         }
       />
 
       <Route
-        path="/student/*"
+        path="/student/dashboard"
         element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['student']}>
             <PrivateLayout>
               <StudentDashboard />
             </PrivateLayout>
-          </ProtectedRoute>
+          </RoleRoute>
         }
       />
 
       <Route
-        path="/search"
+        path="/student/profile"
         element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['student']}>
             <PrivateLayout>
-              <SearchTutoring />
+              <StudentProfile />
             </PrivateLayout>
-          </ProtectedRoute>
+          </RoleRoute>
         }
       />
 
       <Route
-        path="/teacherview/:id"
+        path="/student/profile/:id"
         element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['student', 'teacher']}>
             <PrivateLayout>
-              <TeacherView />
+              <StudentProfile />
             </PrivateLayout>
-          </ProtectedRoute>
+          </RoleRoute>
         }
       />
-
+      
       <Route
-        path="/studenthistory"
+        path="/student/history"
         element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['student']}>
             <PrivateLayout>
               <StudentHistory />
             </PrivateLayout>
-          </ProtectedRoute>
+          </RoleRoute>
         }
       />
-
+      
       <Route
-        path="/studentactivetutoringlist"
+        path="/student/tutoring"
         element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['student']}>
             <PrivateLayout>
               <StudentActiveTutoringList />
             </PrivateLayout>
-          </ProtectedRoute>
+          </RoleRoute>
+        }
+      />
+      
+      <Route
+        path="/student/tutoring-details"
+        element={
+          <RoleRoute allowedRoles={['student']}>
+            <PrivateLayout>
+              <TutoringDetails />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      {/* Rutas específicas para profesores */}
+      <Route
+        path="/teacher"
+        element={
+          <RoleRoute allowedRoles={['teacher']}>
+            <PrivateLayout>
+              <TeacherDashboard />
+            </PrivateLayout>
+          </RoleRoute>
         }
       />
 
       <Route
-        path="/tutoringdetails"
+        path="/teacher/dashboard"
         element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['teacher']}>
             <PrivateLayout>
-              <TutoringDetails />
+              <TeacherDashboard />
             </PrivateLayout>
-          </ProtectedRoute>
+          </RoleRoute>
         }
+      />
+
+      <Route
+        path="/teacher/profile"
+        element={
+          <RoleRoute allowedRoles={['teacher']}>
+            <PrivateLayout>
+              <TeacherProfile />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/teacher/profile/:id"
+        element={
+          <RoleRoute allowedRoles={['teacher', 'student']}>
+            <PrivateLayout>
+              <TeacherProfile />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/teacher/tutoring"
+        element={
+          <RoleRoute allowedRoles={['teacher']}>
+            <PrivateLayout>
+              <TeacherTutorships />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/teacher/media"
+        element={
+          <RoleRoute allowedRoles={['teacher']}>
+            <PrivateLayout>
+              <TeacherMediaLibrary />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />      <Route
+        path="/teacher/availability"
+        element={
+          <RoleRoute allowedRoles={['teacher']}>
+            <PrivateLayout>
+              <TeacherAvailability />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />      <Route
+        path="/teacher/calendar"
+        element={
+          <RoleRoute allowedRoles={['teacher']}>
+            <PrivateLayout>
+              <TeacherCalendar />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="/teacher/subjects"
+        element={
+          <RoleRoute allowedRoles={['teacher']}>
+            <PrivateLayout>
+              <TeacherSubjects />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+      
+      <Route
+        path="/teacher/view/:id"
+        element={
+          <RoleRoute allowedRoles={['teacher']}>
+            <PrivateLayout>
+              <TeacherView />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />
+
+      {/* Rutas compartidas (accesibles por ambos roles) */}
+      <Route
+        path="/search"
+        element={
+          <RoleRoute allowedRoles={['student', 'teacher']}>
+            <PrivateLayout>
+              <SearchTutoring />
+            </PrivateLayout>
+          </RoleRoute>
+        }
+      />      {/* Rutas legacy - redirigir a las nuevas rutas */}
+      <Route
+        path="/studenthistory"
+        element={<Navigate to="/student/history" replace />}
+      />
+      
+      <Route
+        path="/studentactivetutoringlist"
+        element={<Navigate to="/student/tutoring" replace />}
+      />
+
+      <Route
+        path="/student/active-tutoring"
+        element={<Navigate to="/student/tutoring" replace />}
+      />
+      
+      <Route
+        path="/tutoringdetails"
+        element={<Navigate to="/student/tutoring-details" replace />}
+      />
+      
+      <Route
+        path="/teacherview/:id"
+        element={<Navigate to="/teacher/view/:id" replace />}
       />
 
       {/* Ruta 404 */}

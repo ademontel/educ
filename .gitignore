@@ -46,3 +46,7 @@ venv/
 # Misc
 .DS_Store
 Thumbs.db
+
+# Upload files - do not commit uploaded media files
+uploads/
+backend/uploads/
